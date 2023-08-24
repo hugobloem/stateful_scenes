@@ -1,0 +1,1 @@
+"""Stateful scenes integration."""
