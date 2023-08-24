@@ -5,7 +5,7 @@ DOMAIN = "stateful_scenes"
 CONF_SCENE_PATH = "scene_path"
 CONF_NUMBER_TOLERANCE = "number_tolerance"
 
-DEFAULT_SCENE_PATH = "config/scenes.yaml"
+DEFAULT_SCENE_PATH = "scenes.yaml"
 DEFAULT_NUMBER_TOLERANCE = 1
 
 ATTRIBUTES_TO_CHECK = {
