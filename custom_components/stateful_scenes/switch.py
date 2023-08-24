@@ -64,7 +64,7 @@ class StatefulSceneSwitch(SwitchEntity):
         """Initialize an AwesomeLight."""
         self._scene = scene
         self._is_on = None
-        self._name = scene.name
+        self._name = scene.name + " Stateful Scene"
         self._attr_unique_id = "stateful_" + scene.id
 
     @property
