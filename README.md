@@ -17,11 +17,23 @@ cp -r stateful_scenes/custom_components config/
 
 ## Configuration
 Add the following code to your configuration to configure Stateful Scenes:
+
+**Simple example**
 ```yaml
 switch:
   - platform: stateful_scenes
 ```
-By default Home Assistant places all scenes inside `config/scenes.yaml` which is where this integration retrieves the scenes. If your configuration has a different location for scenes you can change the location by changing the `scene_path` variable.
+
+**Complete example**
+```yaml
+switch:
+  - platform: stateful_scenes
+    scene_path: scenes.yaml
+    number_tolerance: 1
+```
+By default Home Assistant places all scenes inside `config/scenes.yaml` which is where this integration retrieves the scenes. If your configuration has a different location for scenes you can change the location by changing the `scene_path` variable. 
+
+Some attributes such as light brightness will be rounded off, therefore to assess whether the scene is active a tolerance will be applied. The default tolerance of 1 will work for rounding errors of ±1, if this does not work for your setup consider increasing this value.
 
 Note that not all entities are supported yet. For the entities listed in the table the state is supported as well as the attributes in the table. Please open an issue if you want support for other entity domains and/or attributes.
 
