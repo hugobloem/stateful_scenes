@@ -73,7 +73,8 @@ class Scene:
             if ent_state is None:
                 _LOGGER.warning("Entity not found: " + entity)
                 return None
-            ent_attrs = ent_state.attributes
+
+            # Check state
             if not self.compare_values(attributes["state"], ent_state.state):
                 _LOGGER.debug(
                     "Entity state not matching: "
@@ -84,22 +85,26 @@ class Scene:
                     + ent_state.state
                 )
                 return False
-            for attribute in ATTRIBUTES_TO_CHECK.get(ent_state.domain):
-                if attribute not in attributes:
-                    continue
-                value = attributes[attribute]
-                if not self.compare_values(value, ent_attrs[attribute]):
-                    _LOGGER.debug(
-                        "Entity attribute not matching: "
-                        + entity
-                        + " "
-                        + str(attribute)
-                        + " "
-                        + str(value)
-                        + " "
-                        + str(ent_attrs[attribute])
-                    )
-                    return False
+
+            # Check attributes
+            if ent_state.domain in ATTRIBUTES_TO_CHECK:
+                ent_attrs = ent_state.attributes
+                for attribute in ATTRIBUTES_TO_CHECK.get(ent_state.domain):
+                    if attribute not in attributes:
+                        continue
+                    value = attributes[attribute]
+                    if not self.compare_values(value, ent_attrs[attribute]):
+                        _LOGGER.debug(
+                            "Entity attribute not matching: "
+                            + entity
+                            + " "
+                            + str(attribute)
+                            + " "
+                            + str(value)
+                            + " "
+                            + str(ent_attrs[attribute])
+                        )
+                        return False
         return True
 
     def compare_values(self, value1, value2):
