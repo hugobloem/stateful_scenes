@@ -35,7 +35,7 @@ By default Home Assistant places all scenes inside `config/scenes.yaml` which is
 
 Some attributes such as light brightness will be rounded off, therefore to assess whether the scene is active a tolerance will be applied. The default tolerance of 1 will work for rounding errors of ±1, if this does not work for your setup consider increasing this value.
 
-Note that not all entities are supported yet. For the entities listed in the table the state is supported as well as the attributes in the table. Please open an issue if you want support for other entity domains and/or attributes.
+Note that while all entity states are supported only some entity attributes are supported at the moment. For the entities listed in the table the state is supported as well as the attributes in the table. Please open an issue if you want support for other entity attributes.
 
 | Entity Domain  | Attributes                 |
 |----------------|----------------------------|
