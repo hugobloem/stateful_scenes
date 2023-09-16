@@ -1,0 +1,55 @@
+# https://www.home-assistant.io/integrations/default_config/
+default_config:
+
+scene: !include scenes.yaml
+
+# https://www.home-assistant.io/integrations/logger/
+logger:
+  default: info
+  logs:
+    custom_components.stateful_scenes: debug
+
+switch:
+  - platform: stateful_scenes
+    scene_path: /workspaces/stateful_scenes/config/scenes.yaml
+  - platform: virtual
+    name: Switch 1
+  - platform: virtual
+    name: Switch 2
+
+virtual:
+
+light:
+  - platform: virtual
+    name: 'Light 1'
+    initial_value: 'on'
+    support_brightness: true
+    initial_brightness: 100
+    support_color: true
+    initial_color: [0,255]
+    support_color_temp: true
+    initial_color_temp: 255
+    support_white_value: true
+    initial_white_value: 240
+    initial_availability: true
+  - platform: virtual
+    name: 'Light 2'
+    initial_value: 'on'
+    support_brightness: true
+    initial_brightness: 100
+    support_color: true
+    initial_color: [0,255]
+    support_color_temp: true
+    initial_color_temp: 255
+    support_white_value: true
+    initial_white_value: 240
+    initial_availability: true
+
+fan:
+  - platform: virtual
+    name: Fan 1
+    speed: True
+    speed_count: 5
+    direction: True
+    oscillate: True
+    initial_availability: true
