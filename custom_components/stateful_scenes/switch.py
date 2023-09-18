@@ -11,6 +11,8 @@ from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.event import track_state_change
+
 
 from . import StatefulScenes
 
@@ -59,6 +61,7 @@ class StatefulSceneSwitch(SwitchEntity):
     _attr_assumed_state = True
     _attr_has_entity_name = True
     _attr_name = None
+    _attr_should_poll = False
 
     def __init__(self, scene) -> None:
         """Initialize an AwesomeLight."""
@@ -66,6 +69,8 @@ class StatefulSceneSwitch(SwitchEntity):
         self._is_on = None
         self._name = "Stateful Scene " + scene.name
         self._attr_unique_id = "stateful_" + scene.id
+
+        self.register_callback()
 
     @property
     def is_on(self) -> bool:
@@ -96,5 +101,15 @@ class StatefulSceneSwitch(SwitchEntity):
 
         This is the only method that should fetch new data for Home Assistant.
         """
-        self._scene.update()
         self._is_on = self._scene.is_on
+
+    def register_callback(self) -> None:
+        """Register callback to update hass when state changes."""
+        self._scene.register_callback(
+            state_change_func=track_state_change,
+            schedule_update_func=self.schedule_update_ha_state,
+        )
+
+    def unregister_callback(self) -> None:
+        """Unregister callback."""
+        self._scene.unregister_callback()
