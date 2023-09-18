@@ -7,7 +7,7 @@ Stateful Scenes solves this problem by creating a switch for each scene and infe
 ### HACS (not yet available)
 Install via [HACS](https://hacs.xyz) by searching for `stateful scenes` in the integrations section
 
-### Manal
+### Manual
 Or, clone the repositort and copy the custom_components folder to your home assistant config folder.
 
 ```bash
