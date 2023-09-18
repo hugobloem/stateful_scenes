@@ -1,4 +1,4 @@
-"""Stateful Scenes for Home Assistant"""
+"""Stateful Scenes for Home Assistant."""
 
 import yaml
 from homeassistant.core import HomeAssistant
