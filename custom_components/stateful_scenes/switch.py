@@ -11,11 +11,12 @@ from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.event import track_state_change
+
 
 from . import StatefulScenes
 
 from .const import (
-    DOMAIN,
     CONF_SCENE_PATH,
     CONF_NUMBER_TOLERANCE,
     DEFAULT_SCENE_PATH,
@@ -59,6 +60,7 @@ class StatefulSceneSwitch(SwitchEntity):
     _attr_assumed_state = True
     _attr_has_entity_name = True
     _attr_name = None
+    _attr_should_poll = False
 
     def __init__(self, scene) -> None:
         """Initialize an AwesomeLight."""
@@ -66,6 +68,8 @@ class StatefulSceneSwitch(SwitchEntity):
         self._is_on = None
         self._name = "Stateful Scene " + scene.name
         self._attr_unique_id = "stateful_" + scene.id
+
+        self.register_callback()
 
     @property
     def is_on(self) -> bool:
@@ -77,7 +81,7 @@ class StatefulSceneSwitch(SwitchEntity):
         """Return the display name of this light."""
         return self._name
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs) -> None:
         """Instruct the light to turn on.
 
         You can skip the brightness part if your light does not support
@@ -86,7 +90,7 @@ class StatefulSceneSwitch(SwitchEntity):
         self._scene.turn_on()
         self._is_on = self._scene.is_on
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs) -> None:
         """Instruct the light to turn off."""
         self._scene.turn_off()
         self._is_on = self._scene.is_on
@@ -96,5 +100,15 @@ class StatefulSceneSwitch(SwitchEntity):
 
         This is the only method that should fetch new data for Home Assistant.
         """
-        self._scene.update()
         self._is_on = self._scene.is_on
+
+    def register_callback(self) -> None:
+        """Register callback to update hass when state changes."""
+        self._scene.register_callback(
+            state_change_func=track_state_change,
+            schedule_update_func=self.schedule_update_ha_state,
+        )
+
+    def unregister_callback(self) -> None:
+        """Unregister callback."""
+        self._scene.unregister_callback()

@@ -1,3 +1,5 @@
+"""Stateful Scenes for Home Assistant."""
+
 import yaml
 from homeassistant.core import HomeAssistant
 import logging
@@ -18,40 +20,72 @@ class Hub:
         self.hass = hass
         self.scenes = []
 
-        self.load_scenes()
+        scene_confs = self.load_scenes()
+        for scene_conf in scene_confs:
+            self.scenes.append(
+                Scene(
+                    self.hass,
+                    self.extract_scene_configuration(scene_conf),
+                    self.number_tolerance,
+                )
+            )
 
-    def load_scenes(self) -> bool:
-        with open(self.scene_path, "r") as f:
+    def load_scenes(self) -> list:
+        """Load scenes from yaml file."""
+        with open(self.scene_path, encoding="ascii") as f:
             scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
 
         if scenes_confs is None:
-            raise Exception("No scenes found in " + self.scene_path)
+            raise OSError("No scenes found in " + self.scene_path)
 
-        for scene_conf in scenes_confs:
-            self.scenes.append(Scene(self.hass, scene_conf, self.number_tolerance))
+        return scenes_confs
+
+    def extract_scene_configuration(self, scene_conf) -> dict:
+        """Extract entities and attributes from a scene."""
+        entities = {}
+        for entity_id, scene_attributes in scene_conf["entities"].items():
+            domain = entity_id.split(".")[0]
+            attributes = {"state": scene_attributes["state"]}
+
+            if domain in ATTRIBUTES_TO_CHECK:
+                for attribute, value in scene_attributes.items():
+                    if attribute in ATTRIBUTES_TO_CHECK.get(domain):
+                        attributes[attribute] = value
+
+            entities[entity_id] = attributes
+
+        return {
+            "name": scene_conf["name"],
+            "id": scene_conf["id"],
+            "entities": entities,
+        }
 
 
 class Scene:
+    """State scene class."""
+
     def __init__(
         self, hass: HomeAssistant, scene_conf: dict, number_tolerance=1
     ) -> None:
         """Initialize."""
         self.hass = hass
-        self.scene_conf = scene_conf
         self.number_tolerance = number_tolerance
         self.name = scene_conf["name"]
         self.id = scene_conf["id"]
+        self.entities = scene_conf["entities"]
         self._is_on = None
-        self.update()
+
+        self.callback = None
+        self.schedule_update = None
+        self.states = {entity_id: False for entity_id in self.entities}
 
     @property
     def is_on(self):
+        """Return true if the scene is on."""
         return self._is_on
 
-    def update(self):
-        self._is_on = self.get_state()
-
-    def turn_on(self, **kwargs):
+    def turn_on(self):
+        """Turn on the scene."""
         self.hass.services.call(
             domain="scene",
             service="turn_on",
@@ -59,77 +93,116 @@ class Scene:
         )
         self._is_on = True
 
-    def turn_off(self, **kwargs):
+    def turn_off(self):
+        """Turn off all entities in the scene."""
         self.hass.services.call(
             domain="homeassistant",
             service="turn_off",
-            target={"entity_id": self.scene_conf["entities"].keys()},
+            target={"entity_id": self.entities.keys()},
         )
         self._is_on = False
 
-    def get_state(self):
-        for entity, attributes in self.scene_conf["entities"].items():
-            ent_state = self.hass.states.get(entity)
-            if ent_state is None:
-                _LOGGER.warning("Entity not found: " + entity)
-                return None
+    def register_callback(self, state_change_func, schedule_update_func):
+        """Register callback."""
+        self.schedule_update = schedule_update_func
+        self.callback = state_change_func(
+            self.hass, self.entities.keys(), self.update_callback
+        )
 
-            # Check state
-            if not self.compare_values(attributes["state"], ent_state.state):
-                _LOGGER.debug(
-                    "Entity state not matching: "
-                    + entity
-                    + " "
-                    + attributes["state"]
-                    + " "
-                    + ent_state.state
-                )
-                return False
+    def unregister_callback(self):
+        """Unregister callbacks."""
+        if self.callback is not None:
+            self.callback()
+            self.callback = None
 
-            # Check attributes
-            if ent_state.domain in ATTRIBUTES_TO_CHECK:
-                ent_attrs = ent_state.attributes
-                for attribute in ATTRIBUTES_TO_CHECK.get(ent_state.domain):
-                    if attribute not in attributes:
-                        continue
-                    value = attributes[attribute]
-                    if not self.compare_values(value, ent_attrs[attribute]):
-                        _LOGGER.debug(
-                            "Entity attribute not matching: "
-                            + entity
-                            + " "
-                            + str(attribute)
-                            + " "
-                            + str(value)
-                            + " "
-                            + str(ent_attrs[attribute])
-                        )
-                        return False
-        return True
+    def update_callback(self, entity_id, old_state, new_state):
+        """Update the scene when a tracked entity changes state."""
+        self.check_state(entity_id, new_state)
+        self._is_on = all(self.states.values())
+        self.schedule_update(True)
+
+    def check_state(self, entity_id, new_state):
+        """Check the state of the scene."""
+        if new_state is None:
+            _LOGGER.warning("Entity not found: %(entity_id)s", entity_id=entity_id)
+            self.states[entity_id] = False
+
+        # Check state
+        if not self.compare_values(self.entities[entity_id]["state"], new_state.state):
+            _LOGGER.debug(
+                "[%s] state not matching: %s: %s != %s.",
+                self.name,
+                entity_id,
+                self.entities[entity_id]["state"],
+                new_state.state,
+            )
+            self.states[entity_id] = False
+            return
+
+        # Check attributes
+        if new_state.domain in ATTRIBUTES_TO_CHECK:
+            entity_attrs = new_state.attributes
+            for attribute in ATTRIBUTES_TO_CHECK.get(new_state.domain):
+                if (
+                    attribute not in self.entities[entity_id]
+                    or attribute not in entity_attrs
+                ):
+                    continue
+                if not self.compare_values(
+                    self.entities[entity_id][attribute], entity_attrs[attribute]
+                ):
+                    _LOGGER.debug(
+                        "[%s] attribute not matching: %s %s: %s %s.",
+                        self.name,
+                        entity_id,
+                        attribute,
+                        self.entities[entity_id][attribute],
+                        entity_attrs[attribute],
+                    )
+                    self.states[entity_id] = False
+                    return
+
+        self.states[entity_id] = True
+
+    def check_all_states(self):
+        """Check the state of the scene."""
+        for entity_id in self.entities:
+            state = self.hass.states.get(entity_id)
+            self.check_state(entity_id, state)
 
     def compare_values(self, value1, value2):
-        if isinstance(value1, dict):
-            if isinstance(value2, dict):
-                for key, value in value1.items():
-                    if key not in value2:
-                        return False
-                    if not self.compare_values(value, value2[key]):
-                        return False
-                return True
-            else:
+        """Compare two values."""
+        if isinstance(value1, dict) and isinstance(value2, dict):
+            return self.compare_dicts(value1, value2)
+
+        if (isinstance(value1, list) or isinstance(value1, tuple)) and (
+            isinstance(value2, list) or isinstance(value2, tuple)
+        ):
+            return self.compare_lists(value1, value2)
+
+        if (isinstance(value1, int) or isinstance(value1, float)) and (
+            isinstance(value2, int) or isinstance(value2, float)
+        ):
+            return self.compare_numbers(value1, value2)
+
+        return value1 == value2
+
+    def compare_dicts(self, dict1, dict2):
+        """Compare two dicts."""
+        for key, value in dict1.items():
+            if key not in dict2:
                 return False
-        elif isinstance(value1, list) or isinstance(value1, tuple):
-            if isinstance(value2, list) or isinstance(value2, tuple):
-                for value in value1:
-                    if value not in value2:
-                        return False
-                return True
-            else:
+            if not self.compare_values(value, dict2[key]):
                 return False
-        elif isinstance(value1, int) or isinstance(value1, float):
-            if isinstance(value2, int) or isinstance(value2, float):
-                return (value1 - value2) <= self.number_tolerance
-            else:
+        return True
+
+    def compare_lists(self, list1, list2):
+        """Compare two lists."""
+        for value1, value2 in zip(list1, list2):
+            if not self.compare_values(value1, value2):
                 return False
-        else:
-            return value1 == value2
+        return True
+
+    def compare_numbers(self, number1, number2):
+        """Compare two numbers."""
+        return abs(number1 - number2) <= self.number_tolerance
