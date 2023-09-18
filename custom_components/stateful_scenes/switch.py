@@ -17,7 +17,6 @@ from homeassistant.helpers.event import track_state_change
 from . import StatefulScenes
 
 from .const import (
-    DOMAIN,
     CONF_SCENE_PATH,
     CONF_NUMBER_TOLERANCE,
     DEFAULT_SCENE_PATH,
@@ -82,7 +81,7 @@ class StatefulSceneSwitch(SwitchEntity):
         """Return the display name of this light."""
         return self._name
 
-    def turn_on(self, **kwargs: Any) -> None:
+    def turn_on(self, **kwargs) -> None:
         """Instruct the light to turn on.
 
         You can skip the brightness part if your light does not support
@@ -91,7 +90,7 @@ class StatefulSceneSwitch(SwitchEntity):
         self._scene.turn_on()
         self._is_on = self._scene.is_on
 
-    def turn_off(self, **kwargs: Any) -> None:
+    def turn_off(self, **kwargs) -> None:
         """Instruct the light to turn off."""
         self._scene.turn_off()
         self._is_on = self._scene.is_on

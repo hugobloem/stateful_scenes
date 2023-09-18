@@ -1,3 +1,5 @@
+"""Stateful Scenes for Home Assistant"""
+
 import yaml
 from homeassistant.core import HomeAssistant
 import logging
@@ -30,11 +32,11 @@ class Hub:
 
     def load_scenes(self) -> list:
         """Load scenes from yaml file."""
-        with open(self.scene_path, "r", encoding="ascii") as f:
+        with open(self.scene_path, encoding="ascii") as f:
             scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
 
         if scenes_confs is None:
-            raise IOError("No scenes found in " + self.scene_path)
+            raise OSError("No scenes found in " + self.scene_path)
 
         return scenes_confs
 
@@ -60,6 +62,8 @@ class Hub:
 
 
 class Scene:
+    """State scene class."""
+
     def __init__(
         self, hass: HomeAssistant, scene_conf: dict, number_tolerance=1
     ) -> None:
@@ -73,7 +77,7 @@ class Scene:
 
         self.callback = None
         self.schedule_update = None
-        self.states = {entity_id: False for entity_id in self.entities.keys()}
+        self.states = {entity_id: False for entity_id in self.entities}
 
     @property
     def is_on(self):
@@ -162,7 +166,7 @@ class Scene:
 
     def check_all_states(self):
         """Check the state of the scene."""
-        for entity_id in self.entities.keys():
+        for entity_id in self.entities:
             state = self.hass.states.get(entity_id)
             self.check_state(entity_id, state)
 
