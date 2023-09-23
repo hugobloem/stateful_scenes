@@ -20,11 +20,11 @@ This integration is now configured via the config flow. After you have installed
 
 [![Open your Home Assistant instance and show an integration.](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=stateful_scenes)
 
-If your configuration has a different location for scenes you can change the location by changing the `scene_path` variable. By default Home Assistant places all scenes inside `scenes.yaml` which is where this integration retrieves the scenes.
+If your configuration has a different location for scenes you can change the location by changing the `scene_path` variable. By default, Home Assistant places all scenes inside `scenes.yaml` which is where this integration retrieves the scenes.
 
-Some attributes such as light brightness will be rounded off, therefore to assess whether the scene is active a tolerance will be applied. The default tolerance of 1 will work for rounding errors of ±1, if this does not work for your setup consider increasing this value.
+Some attributes such as light brightness will be rounded off. Therefore, to assess whether the scene is active a tolerance will be applied. The default tolerance of 1 will work for rounding errors of ±1. If this does not work for your setup consider increasing this value.
 
-Note that while all entity states are supported only some entity attributes are supported at the moment. For the entities listed in the table the state is supported as well as the attributes in the table. Please open an issue if you want support for other entity attributes.
+Note that while all entity states are supported only some entity attributes are supported at the moment. For the entities listed in the table the state is supported as well as the attributes in the table. Please open an issue, if you want support for other entity attributes.
 
 | Entity Domain  | Attributes                               |
 |----------------|------------------------------------------|
@@ -40,4 +40,4 @@ For each scene you can specify the individual transition time by changing the tr
 
 
 ## HomeKit configuration
-Once you have configured this integration, you can add the scenes to HomeKit. I assume that you already set up and configured the HomeKit integration. Expose the newly added switches to HomeKit. Then, in HomeKit define scenes for each of the switches defined by Stateful Scenes.
+Once you have configured this integration, you can add the scenes to HomeKit. I assume that you already set up and configured the HomeKit integration. Expose the newly added switches to HomeKit. Then, in HomeKit define scenes for each Stateful Scenes switch.
