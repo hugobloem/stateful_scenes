@@ -1,20 +1,23 @@
 """Adds config flow for Blueprint."""
 from __future__ import annotations
 
+import logging
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.helpers import selector
 
-from .StatefulScenes import Hub
-
 # from .StatefulScenes import test_yaml
 from .const import (
-    DOMAIN,
-    CONF_SCENE_PATH,
     CONF_NUMBER_TOLERANCE,
-    DEFAULT_SCENE_PATH,
+    CONF_SCENE_PATH,
     DEFAULT_NUMBER_TOLERANCE,
+    DEFAULT_SCENE_PATH,
+    DOMAIN,
 )
+from .StatefulScenes import Hub, StatefulScenesYamlInvalid, StatefulScenesYamlNotFound
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -31,17 +34,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         print(user_input)
         if user_input is not None:
-            # TODO check input
-            # Hub(
-            #     hass=self.hass,
-            #     scene_path=user_input[CONF_SCENE_PATH],
-            #     number_tolerance=user_input[CONF_NUMBER_TOLERANCE],
-            # )
-            # await self.async_set_unique_id("Stateful Scenes")
-            return self.async_create_entry(
-                title="Stateful Scenes",
-                data=user_input,
-            )
+            try:
+                Hub(
+                    hass=self.hass,
+                    scene_path=user_input[CONF_SCENE_PATH],
+                    number_tolerance=user_input[CONF_NUMBER_TOLERANCE],
+                )
+            except StatefulScenesYamlInvalid as err:
+                _LOGGER.warning(err)
+                _errors["base"] = "invalid_yaml"
+            except StatefulScenesYamlNotFound as err:
+                _LOGGER.warning(err)
+                _errors["base"] = "yaml_not_found"
+            except Exception as err:
+                _LOGGER.warning(err)
+                _errors["base"] = "unknown"
+            else:
+                return self.async_create_entry(
+                    title="Stateful Scenes",
+                    data=user_input,
+                )
 
         return self.async_show_form(
             step_id="user",
