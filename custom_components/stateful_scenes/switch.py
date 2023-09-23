@@ -11,12 +11,14 @@ from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-from homeassistant.helpers.event import track_state_change
+from homeassistant.helpers.event import async_track_state_change
+from homeassistant.config_entries import ConfigEntry
 
 
 from . import StatefulScenes
 
 from .const import (
+    DOMAIN,
     CONF_SCENE_PATH,
     CONF_NUMBER_TOLERANCE,
     DEFAULT_SCENE_PATH,
@@ -52,6 +54,27 @@ def setup_platform(
 
     # Add devices
     add_entities(StatefulSceneSwitch(scene) for scene in hub.scenes)
+
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, add_entities: AddEntitiesCallback
+) -> bool:
+    """Set up this integration using UI."""
+    assert hass is not None
+    data = hass.data[DOMAIN]
+    assert entry.entry_id in data
+    _LOGGER.debug(
+        "Setting up Stateful Scenes with data: %s and config_entry %s",
+        data,
+        entry,
+    )
+    hub = data[entry.entry_id]
+
+    stateful_scene_switches = [StatefulSceneSwitch(scene) for scene in hub.scenes]
+
+    add_entities(stateful_scene_switches)
+
+    return True
 
 
 class StatefulSceneSwitch(SwitchEntity):
@@ -105,7 +128,7 @@ class StatefulSceneSwitch(SwitchEntity):
     def register_callback(self) -> None:
         """Register callback to update hass when state changes."""
         self._scene.register_callback(
-            state_change_func=track_state_change,
+            state_change_func=async_track_state_change,
             schedule_update_func=self.schedule_update_ha_state,
         )
 
