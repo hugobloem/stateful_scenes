@@ -12,5 +12,5 @@ ATTRIBUTES_TO_CHECK = {
     "light": {"brightness", "rgb_color"},
     "cover": {"position"},
     "media_player": {"volume_level", "source"},
-    "fan": {"direction", "oscillating", "percentage"}
+    "fan": {"direction", "oscillating", "percentage"},
 }

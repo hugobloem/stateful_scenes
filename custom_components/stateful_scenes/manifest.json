@@ -1,11 +1,12 @@
 {
-    "domain": "stateful_scenes",
-    "name": "Stateful Scenes",
-    "codeowners": ["@hugobloem"],
-    "config_flow": false,
-    "documentation": "https://raw.githubusercontent.com/hugobloem/stateful_scenes/main/README.md",
-    "iot_class": "calculated",
-    "issue_tracker": "https://github.com/hugobloem/stateful_scenes/issues",
-    "version": "0.3.1"
-  }
-  
+  "domain": "stateful_scenes",
+  "name": "Stateful Scenes",
+  "codeowners": [
+    "@hugobloem"
+  ],
+  "config_flow": true,
+  "documentation": "https://raw.githubusercontent.com/hugobloem/stateful_scenes/main/README.md",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/hugobloem/stateful_scenes/issues",
+  "version": "0.3.1"
+}
