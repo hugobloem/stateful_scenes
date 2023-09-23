@@ -12,6 +12,7 @@ from .const import DOMAIN, CONF_SCENE_PATH, CONF_NUMBER_TOLERANCE
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
+    Platform.NUMBER,
 ]
 
 
@@ -29,7 +30,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, platform)
         )
-    # add_entities(StatefulSceneSwitch(scene) for scene in hub.scenes)
 
     return True
 
