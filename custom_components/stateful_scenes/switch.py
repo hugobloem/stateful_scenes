@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from homeassistant.helpers.device_registry import DeviceInfo
 
 import voluptuous as vol
 
@@ -23,6 +24,7 @@ from .const import (
     CONF_NUMBER_TOLERANCE,
     DEFAULT_SCENE_PATH,
     DEFAULT_NUMBER_TOLERANCE,
+    DEVICE_INFO_MANUFACTURER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -103,6 +105,14 @@ class StatefulSceneSwitch(SwitchEntity):
     def name(self) -> str:
         """Return the display name of this light."""
         return self._name
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        return DeviceInfo(
+            identifiers={(self._scene.id,)},
+            name=self._scene.name,
+            manufacturer=DEVICE_INFO_MANUFACTURER,
+        )
 
     def turn_on(self, **kwargs) -> None:
         """Instruct the light to turn on.

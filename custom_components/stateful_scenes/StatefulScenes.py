@@ -71,7 +71,7 @@ class Scene:
         self.hass = hass
         self.number_tolerance = number_tolerance
         self.name = scene_conf["name"]
-        self.id = scene_conf["id"]
+        self._id = scene_conf["id"]
         self.entities = scene_conf["entities"]
         self._is_on = None
 
@@ -83,6 +83,11 @@ class Scene:
     def is_on(self):
         """Return true if the scene is on."""
         return self._is_on
+
+    @property
+    def id(self):
+        """Return the id of the scene."""
+        return self._id
 
     def turn_on(self):
         """Turn on the scene."""

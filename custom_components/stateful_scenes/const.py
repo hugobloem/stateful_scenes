@@ -14,3 +14,5 @@ ATTRIBUTES_TO_CHECK = {
     "media_player": {"volume_level", "source"},
     "fan": {"direction", "oscillating", "percentage"},
 }
+
+DEVICE_INFO_MANUFACTURER = "Stateful Scenes"
