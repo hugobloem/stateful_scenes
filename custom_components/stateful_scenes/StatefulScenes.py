@@ -32,7 +32,7 @@ class Hub:
 
     def load_scenes(self) -> list:
         """Load scenes from yaml file."""
-        with open(self.scene_path, encoding="ascii") as f:
+        with open(self.scene_path, encoding="utf-8") as f:
             scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
 
         if scenes_confs is None:
