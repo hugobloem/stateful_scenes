@@ -32,7 +32,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle a flow initialized by the user."""
         _errors = {}
 
-        print(user_input)
         if user_input is not None:
             try:
                 Hub(

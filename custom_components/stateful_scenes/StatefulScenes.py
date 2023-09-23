@@ -100,6 +100,7 @@ class Scene:
         self._id = scene_conf["id"]
         self.entities = scene_conf["entities"]
         self._is_on = None
+        self._transition_time = None
 
         self.callback = None
         self.schedule_update = None
@@ -121,6 +122,7 @@ class Scene:
             domain="scene",
             service="turn_on",
             target={"entity_id": "scene." + self.name.lower().replace(" ", "_")},
+            service_data={"transition": self._transition_time},
         )
         self._is_on = True
 
@@ -132,6 +134,15 @@ class Scene:
             target={"entity_id": self.entities.keys()},
         )
         self._is_on = False
+
+    @property
+    def transition_time(self) -> float:
+        """Get the transition time."""
+        return self._transition_time
+
+    def set_transition_time(self, transition_time):
+        """Set the transition time."""
+        self._transition_time = transition_time
 
     def register_callback(self, state_change_func, schedule_update_func):
         """Register callback."""
