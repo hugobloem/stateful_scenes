@@ -8,6 +8,11 @@
                     "number_tolerance": "Rounding tolerance"
                 }
             }
+        },
+        "error": {
+            "invalid_yaml": "Invalid scenes file",
+            "yaml_not_found": "Specified YAML not found",
+            "unknown": "Unknown error occurred"
         }
     }
 }

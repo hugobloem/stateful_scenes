@@ -1,11 +1,21 @@
 """Stateful Scenes for Home Assistant."""
 
+import logging
+
 import yaml
 from homeassistant.core import HomeAssistant
-import logging
+
 from .const import ATTRIBUTES_TO_CHECK
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class StatefulScenesYamlNotFound(Exception):
+    """Raised when specified yaml is not found."""
+
+
+class StatefulScenesYamlInvalid(Exception):
+    """Raised when specified yaml is invalid."""
 
 
 class Hub:
@@ -32,13 +42,29 @@ class Hub:
 
     def load_scenes(self) -> list:
         """Load scenes from yaml file."""
-        with open(self.scene_path, encoding="utf-8") as f:
-            scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
-
-        if scenes_confs is None:
-            raise OSError("No scenes found in " + self.scene_path)
+        try:
+            with open(self.scene_path, encoding="utf-8") as f:
+                scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
+        except OSError as err:
+            raise StatefulScenesYamlNotFound(
+                "No scenes found in " + self.scene_path
+            ) from err
 
         return scenes_confs
+
+    def validate_scene(self, scene_conf) -> None:
+        """Validate scene configuration."""
+
+        if "entities" not in scene_conf:
+            raise StatefulScenesYamlInvalid("Scene is missing entities: " + scene_conf)
+
+        for entity_id, scene_attributes in scene_conf["entities"].items():
+            if "state" not in scene_attributes:
+                raise StatefulScenesYamlInvalid(
+                    "Scene is missing state for entity " + entity_id + scene_conf
+                )
+
+        return True
 
     def extract_scene_configuration(self, scene_conf) -> dict:
         """Extract entities and attributes from a scene."""
