@@ -9,13 +9,13 @@ logger:
   logs:
     custom_components.stateful_scenes: debug
 
-switch:
-  - platform: stateful_scenes
-    scene_path: /workspaces/stateful_scenes/config/scenes.yaml
-  - platform: virtual
-    name: Switch 1
-  - platform: virtual
-    name: Switch 2
+# switch:
+#   - platform: stateful_scenes
+#     scene_path: /workspaces/stateful_scenes/config/scenes.yaml
+#   - platform: virtual
+#     name: Switch 1
+#   - platform: virtual
+#     name: Switch 2
 
 virtual:
 
