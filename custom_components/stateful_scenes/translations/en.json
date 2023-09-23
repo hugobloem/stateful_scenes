@@ -1,0 +1,13 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "description": "Set the path to the scene file (default works with Home Assistant OS)",
+                "data": {
+                    "scene_path": "Scene path",
+                    "number_tolerance": "Rounding tolerance"
+                }
+            }
+        }
+    }
+}
