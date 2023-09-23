@@ -16,22 +16,11 @@ cp -r stateful_scenes/custom_components config/
 ```
 
 ## Configuration
-Add the following code to your configuration to configure Stateful Scenes:
+This integration is now configured via the config flow. After you have installed and restarted Home Assistant, go to Devices and Services, Add Integration, and search for Stateful Scenes. Alternatively, just click this button:
 
-**Simple example**
-```yaml
-switch:
-  - platform: stateful_scenes
-```
+[![Open your Home Assistant instance and show an integration.](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=stateful_scenes)
 
-**Complete example**
-```yaml
-switch:
-  - platform: stateful_scenes
-    scene_path: scenes.yaml
-    number_tolerance: 1
-```
-By default Home Assistant places all scenes inside `config/scenes.yaml` which is where this integration retrieves the scenes. If your configuration has a different location for scenes you can change the location by changing the `scene_path` variable.
+If your configuration has a different location for scenes you can change the location by changing the `scene_path` variable. By default Home Assistant places all scenes inside `scenes.yaml` which is where this integration retrieves the scenes.
 
 Some attributes such as light brightness will be rounded off, therefore to assess whether the scene is active a tolerance will be applied. The default tolerance of 1 will work for rounding errors of ±1, if this does not work for your setup consider increasing this value.
 
@@ -43,6 +32,12 @@ Note that while all entity states are supported only some entity attributes are 
 | `cover`        | `position`                               |
 | `media_player` | `volume_level`, `source`                 |
 | `fan`          | `direction`, `oscillating`, `percentage` |
+
+Furthermore, you can specify the default transition time for applying scenes. This will gradually change the lights of a scene to the specified state. It does need to be supported by your lights.
+
+## Scene configurations
+For each scene you can specify the individual transition time by changing the transition time variable in the device page.
+
 
 ## HomeKit configuration
 Once you have configured this integration, you can add the scenes to HomeKit. I assume that you already set up and configured the HomeKit integration. Expose the newly added switches to HomeKit. Then, in HomeKit define scenes for each of the switches defined by Stateful Scenes.
