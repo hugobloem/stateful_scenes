@@ -131,7 +131,7 @@ class Scene:
         self.hass.services.call(
             domain="homeassistant",
             service="turn_off",
-            target={"entity_id": self.entities.keys()},
+            target={"entity_id": list(self.entities.keys())},
         )
         self._is_on = False
 
