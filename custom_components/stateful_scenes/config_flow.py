@@ -9,11 +9,22 @@ from homeassistant.helpers import selector
 
 # from .StatefulScenes import test_yaml
 from .const import (
+    DOMAIN,
     CONF_NUMBER_TOLERANCE,
     CONF_SCENE_PATH,
+    CONF_TRANSITION_TIME,
     DEFAULT_NUMBER_TOLERANCE,
     DEFAULT_SCENE_PATH,
-    DOMAIN,
+    DEFAULT_TRANSITION_TIME,
+)
+
+from .const import (
+    TOLERANCE_MIN,
+    TOLERANCE_MAX,
+    TOLERANCE_STEP,
+    TRANSITION_MIN,
+    TRANSITION_MAX,
+    TRANSITION_STEP,
 )
 from .StatefulScenes import Hub, StatefulScenesYamlInvalid, StatefulScenesYamlNotFound
 
@@ -66,7 +77,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Optional(
                         CONF_NUMBER_TOLERANCE, default=DEFAULT_NUMBER_TOLERANCE
                     ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(min=0, max=20, step=1)
+                        selector.NumberSelectorConfig(
+                            min=TOLERANCE_MIN, max=TOLERANCE_MAX, step=TOLERANCE_STEP
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_TRANSITION_TIME, default=DEFAULT_TRANSITION_TIME
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=TRANSITION_MIN, max=TRANSITION_MAX, step=TRANSITION_STEP
+                        )
                     ),
                 }
             ),

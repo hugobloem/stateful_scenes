@@ -5,7 +5,8 @@
                 "description": "Set the path to the scene file (default works with Home Assistant OS)",
                 "data": {
                     "scene_path": "Scene path",
-                    "number_tolerance": "Rounding tolerance"
+                    "number_tolerance": "Rounding tolerance",
+                    "transition_time": "Transition time"
                 }
             }
         },

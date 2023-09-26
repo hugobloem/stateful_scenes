@@ -21,6 +21,8 @@ from . import StatefulScenes
 from .const import (
     DOMAIN,
     DEVICE_INFO_MANUFACTURER,
+    CONF_TRANSITION_TIME,
+    DEFAULT_TRANSITION_TIME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,7 +42,10 @@ async def async_setup_entry(
     )
     hub = data[entry.entry_id]
 
-    stateful_scene_number = [TransitionNumber(scene) for scene in hub.scenes]
+    stateful_scene_number = [
+        TransitionNumber(scene, entry.data.get(CONF_TRANSITION_TIME))
+        for scene in hub.scenes
+    ]
 
     add_entities(stateful_scene_number)
 
@@ -57,11 +62,19 @@ class TransitionNumber(RestoreNumber):
     _attr_name = "Transition Time"
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, scene: StatefulScenes.Scene) -> None:
+    def __init__(self, scene: StatefulScenes.Scene, transition_time=None) -> None:
         """Initialize."""
         self._scene = scene
         self._name = f"{scene.name} Transition Time"
         self._attr_unique_id = f"{scene.id}_transition_time"
+
+        if transition_time is not None:
+            _LOGGER.debug(
+                "Setting initial transition time for %s to %s",
+                scene.name,
+                transition_time,
+            )
+            self._scene.set_transition_time(transition_time)
 
     @property
     def name(self) -> str:
@@ -88,6 +101,11 @@ class TransitionNumber(RestoreNumber):
             last_number_data := await self.async_get_last_number_data()
         ):
             if last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+                _LOGGER.debug(
+                    "Restoring transition time for %s to %s",
+                    self._scene.name,
+                    last_number_data.native_value,
+                )
                 self._scene.set_transition_time(last_number_data.native_value)
 
     @property
