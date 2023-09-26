@@ -4,11 +4,16 @@
 Stateful Scenes solves this problem by creating a switch for each scene and inferring the state of the scene by analysing the entities in the scene. Plus, when you activate a scene in Home Assistant, the scene will also turn on in HomeKit—magic!
 
 ## Installation
-### HACS (not yet available)
+### HACS – custom repository
+In HACS go to integrations and then click the three buttons at the top right. From there, add a custom repository. Repository name is `hugobloem/stateful_scenes` and the category is `integration`.
+
+![Custom repository screenshot](media/custom-repository.png)
+
+### HACS – default repository ([not available yet](https://github.com/hacs/default/pull/2033))
 Install via [HACS](https://hacs.xyz) by searching for `stateful scenes` in the integrations section
 
 ### Manual
-Or, clone the repositort and copy the custom_components folder to your home assistant config folder.
+Or, clone the repository and copy the custom_components folder to your home assistant config folder.
 
 ```bash
 git clone https://github.com/hugobloem/stateful_scenes.git
@@ -36,7 +41,7 @@ Note that while all entity states are supported only some entity attributes are 
 Furthermore, you can specify the default transition time for applying scenes. This will gradually change the lights of a scene to the specified state. It does need to be supported by your lights.
 
 ## Scene configurations
-For each scene you can specify the individual transition time by changing the transition time variable in the device page.
+For each scene you can specify the individual transition time by changing the transition time variable on the scene's device page.
 
 
 ## HomeKit configuration
