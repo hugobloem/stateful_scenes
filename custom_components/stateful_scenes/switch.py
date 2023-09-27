@@ -84,14 +84,14 @@ class StatefulSceneSwitch(SwitchEntity):
 
     _attr_assumed_state = True
     _attr_has_entity_name = True
-    _attr_name = None
+    _attr_name = "Stateful Scene"
     _attr_should_poll = False
 
     def __init__(self, scene) -> None:
         """Initialize an AwesomeLight."""
         self._scene = scene
         self._is_on = None
-        self._name = f"{scene.name} Stateful Scene"
+        self._name = "Stateful Scene"
         self._attr_unique_id = f"stateful_{scene.id}"
 
         self.register_callback()
