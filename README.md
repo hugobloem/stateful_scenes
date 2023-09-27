@@ -5,7 +5,11 @@ Stateful Scenes solves this problem by creating a switch for each scene and infe
 
 ## Installation
 ### HACS – custom repository
-In HACS go to integrations and then click the three buttons at the top right. From there, add a custom repository. Repository name is `hugobloem/stateful_scenes` and the category is `integration`.
+Click this button:
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=hugobloem&repository=stateful_scenes&category=integration)
+
+Or, in HACS go to integrations and then click the three buttons at the top right. From there, add a custom repository. Repository name is `hugobloem/stateful_scenes` and the category is `integration`.
 
 ![Custom repository screenshot](media/custom-repository.png)
 
@@ -25,10 +29,18 @@ This integration is now configured via the config flow. After you have installed
 
 [![Open your Home Assistant instance and show an integration.](https://my.home-assistant.io/badges/integration.svg)](https://my.home-assistant.io/redirect/integration/?domain=stateful_scenes)
 
-If your configuration has a different location for scenes you can change the location by changing the `scene_path` variable. By default, Home Assistant places all scenes inside `scenes.yaml` which is where this integration retrieves the scenes.
+![Config flow screenshot](media/config-flow.png)
 
+### Scene path
+If your configuration has a different location for scenes you can change the location by changing the `Scene path` variable. By default, Home Assistant places all scenes inside `scenes.yaml` which is where this integration retrieves the scenes.
+
+### Rounding tolerance
 Some attributes such as light brightness will be rounded off. Therefore, to assess whether the scene is active a tolerance will be applied. The default tolerance of 1 will work for rounding errors of ±1. If this does not work for your setup consider increasing this value.
 
+### Transition time
+Furthermore, you can specify the default transition time for applying scenes. This will gradually change the lights of a scene to the specified state. It does need to be supported by your lights.
+
+### Supported attributes
 Note that while all entity states are supported only some entity attributes are supported at the moment. For the entities listed in the table the state is supported as well as the attributes in the table. Please open an issue, if you want support for other entity attributes.
 
 | Entity Domain  | Attributes                               |
@@ -38,7 +50,6 @@ Note that while all entity states are supported only some entity attributes are 
 | `media_player` | `volume_level`, `source`                 |
 | `fan`          | `direction`, `oscillating`, `percentage` |
 
-Furthermore, you can specify the default transition time for applying scenes. This will gradually change the lights of a scene to the specified state. It does need to be supported by your lights.
 
 ## Scene configurations
 For each scene you can specify the individual transition time by changing the transition time variable on the scene's device page.
