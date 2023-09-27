@@ -1,11 +1,21 @@
 """Stateful Scenes for Home Assistant."""
 
+import logging
+
 import yaml
 from homeassistant.core import HomeAssistant
-import logging
+
 from .const import ATTRIBUTES_TO_CHECK
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class StatefulScenesYamlNotFound(Exception):
+    """Raised when specified yaml is not found."""
+
+
+class StatefulScenesYamlInvalid(Exception):
+    """Raised when specified yaml is invalid."""
 
 
 class Hub:
@@ -32,13 +42,29 @@ class Hub:
 
     def load_scenes(self) -> list:
         """Load scenes from yaml file."""
-        with open(self.scene_path, encoding="utf-8") as f:
-            scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
-
-        if scenes_confs is None:
-            raise OSError("No scenes found in " + self.scene_path)
+        try:
+            with open(self.scene_path, encoding="utf-8") as f:
+                scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
+        except OSError as err:
+            raise StatefulScenesYamlNotFound(
+                "No scenes found in " + self.scene_path
+            ) from err
 
         return scenes_confs
+
+    def validate_scene(self, scene_conf) -> None:
+        """Validate scene configuration."""
+
+        if "entities" not in scene_conf:
+            raise StatefulScenesYamlInvalid("Scene is missing entities: " + scene_conf)
+
+        for entity_id, scene_attributes in scene_conf["entities"].items():
+            if "state" not in scene_attributes:
+                raise StatefulScenesYamlInvalid(
+                    "Scene is missing state for entity " + entity_id + scene_conf
+                )
+
+        return True
 
     def extract_scene_configuration(self, scene_conf) -> dict:
         """Extract entities and attributes from a scene."""
@@ -71,9 +97,10 @@ class Scene:
         self.hass = hass
         self.number_tolerance = number_tolerance
         self.name = scene_conf["name"]
-        self.id = scene_conf["id"]
+        self._id = scene_conf["id"]
         self.entities = scene_conf["entities"]
         self._is_on = None
+        self._transition_time = None
 
         self.callback = None
         self.schedule_update = None
@@ -84,12 +111,18 @@ class Scene:
         """Return true if the scene is on."""
         return self._is_on
 
+    @property
+    def id(self):
+        """Return the id of the scene."""
+        return self._id
+
     def turn_on(self):
         """Turn on the scene."""
         self.hass.services.call(
             domain="scene",
             service="turn_on",
             target={"entity_id": "scene." + self.name.lower().replace(" ", "_")},
+            service_data={"transition": self._transition_time},
         )
         self._is_on = True
 
@@ -98,9 +131,18 @@ class Scene:
         self.hass.services.call(
             domain="homeassistant",
             service="turn_off",
-            target={"entity_id": self.entities.keys()},
+            target={"entity_id": list(self.entities.keys())},
         )
         self._is_on = False
+
+    @property
+    def transition_time(self) -> float:
+        """Get the transition time."""
+        return self._transition_time
+
+    def set_transition_time(self, transition_time):
+        """Set the transition time."""
+        self._transition_time = transition_time
 
     def register_callback(self, state_change_func, schedule_update_func):
         """Register callback."""

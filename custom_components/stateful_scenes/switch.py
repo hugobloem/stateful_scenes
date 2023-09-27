@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from homeassistant.helpers.device_registry import DeviceInfo
 
 import voluptuous as vol
 
@@ -11,16 +12,19 @@ from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-from homeassistant.helpers.event import track_state_change
+from homeassistant.helpers.event import async_track_state_change
+from homeassistant.config_entries import ConfigEntry
 
 
 from . import StatefulScenes
 
 from .const import (
+    DOMAIN,
     CONF_SCENE_PATH,
     CONF_NUMBER_TOLERANCE,
     DEFAULT_SCENE_PATH,
     DEFAULT_NUMBER_TOLERANCE,
+    DEVICE_INFO_MANUFACTURER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,6 +58,27 @@ def setup_platform(
     add_entities(StatefulSceneSwitch(scene) for scene in hub.scenes)
 
 
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, add_entities: AddEntitiesCallback
+) -> bool:
+    """Set up this integration using UI."""
+    assert hass is not None
+    data = hass.data[DOMAIN]
+    assert entry.entry_id in data
+    _LOGGER.debug(
+        "Setting up Stateful Scenes with data: %s and config_entry %s",
+        data,
+        entry,
+    )
+    hub = data[entry.entry_id]
+
+    stateful_scene_switches = [StatefulSceneSwitch(scene) for scene in hub.scenes]
+
+    add_entities(stateful_scene_switches)
+
+    return True
+
+
 class StatefulSceneSwitch(SwitchEntity):
     """Representation of an Awesome Light."""
 
@@ -66,8 +91,8 @@ class StatefulSceneSwitch(SwitchEntity):
         """Initialize an AwesomeLight."""
         self._scene = scene
         self._is_on = None
-        self._name = "Stateful Scene " + scene.name
-        self._attr_unique_id = "stateful_" + scene.id
+        self._name = f"{scene.name} Stateful Scene"
+        self._attr_unique_id = f"stateful_{scene.id}"
 
         self.register_callback()
 
@@ -80,6 +105,15 @@ class StatefulSceneSwitch(SwitchEntity):
     def name(self) -> str:
         """Return the display name of this light."""
         return self._name
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(self._scene.id,)},
+            name=self._scene.name,
+            manufacturer=DEVICE_INFO_MANUFACTURER,
+        )
 
     def turn_on(self, **kwargs) -> None:
         """Instruct the light to turn on.
@@ -105,7 +139,7 @@ class StatefulSceneSwitch(SwitchEntity):
     def register_callback(self) -> None:
         """Register callback to update hass when state changes."""
         self._scene.register_callback(
-            state_change_func=track_state_change,
+            state_change_func=async_track_state_change,
             schedule_update_func=self.schedule_update_ha_state,
         )
 

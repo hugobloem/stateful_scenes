@@ -1,0 +1,19 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "description": "Set the path to the scene file (default works with Home Assistant OS)",
+                "data": {
+                    "scene_path": "Scene path",
+                    "number_tolerance": "Rounding tolerance",
+                    "transition_time": "Transition time"
+                }
+            }
+        },
+        "error": {
+            "invalid_yaml": "Invalid scenes file",
+            "yaml_not_found": "Specified YAML not found",
+            "unknown": "Unknown error occurred"
+        }
+    }
+}
