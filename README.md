@@ -33,7 +33,7 @@ Note that while all entity states are supported only some entity attributes are 
 
 | Entity Domain  | Attributes                               |
 |----------------|------------------------------------------|
-| `light`        | `brightness`, `rgb_color`                |
+| `light`        | `brightness`, `rgb_color`, `effect`      |
 | `cover`        | `position`                               |
 | `media_player` | `volume_level`, `source`                 |
 | `fan`          | `direction`, `oscillating`, `percentage` |
