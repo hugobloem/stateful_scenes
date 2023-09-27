@@ -108,6 +108,7 @@ class StatefulSceneSwitch(SwitchEntity):
 
     @property
     def device_info(self) -> DeviceInfo | None:
+        """Return the device info."""
         return DeviceInfo(
             identifiers={(self._scene.id,)},
             name=self._scene.name,

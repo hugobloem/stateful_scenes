@@ -5,10 +5,7 @@ from __future__ import annotations
 import logging
 from homeassistant.helpers.device_registry import DeviceInfo
 
-import voluptuous as vol
-
 # Import the device class from the component that you want to support
-import homeassistant.helpers.config_validation as cv
 from homeassistant.components.number import RestoreNumber
 from homeassistant.const import EntityCategory, STATE_UNKNOWN, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
@@ -22,7 +19,6 @@ from .const import (
     DOMAIN,
     DEVICE_INFO_MANUFACTURER,
     CONF_TRANSITION_TIME,
-    DEFAULT_TRANSITION_TIME,
 )
 
 _LOGGER = logging.getLogger(__name__)
