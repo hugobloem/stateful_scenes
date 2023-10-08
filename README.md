@@ -37,6 +37,9 @@ If your configuration has a different location for scenes you can change the loc
 ### Rounding tolerance
 Some attributes such as light brightness will be rounded off. Therefore, to assess whether the scene is active a tolerance will be applied. The default tolerance of 1 will work for rounding errors of ±1. If this does not work for your setup consider increasing this value.
 
+### Restore on deactivation
+You can set up Stateful Scenes to restore the state of the entities when you want to turn off a scene. This can also be configured per Stateful Scene by going to the device page.
+
 ### Transition time
 Furthermore, you can specify the default transition time for applying scenes. This will gradually change the lights of a scene to the specified state. It does need to be supported by your lights.
 
@@ -52,7 +55,7 @@ Note that while all entity states are supported only some entity attributes are 
 
 
 ## Scene configurations
-For each scene you can specify the individual transition time by changing the transition time variable on the scene's device page.
+For each scene you can specify the individual transition time and whether to restore on deactivation by changing the variables on the scene's device page.
 
 
 ## HomeKit configuration
