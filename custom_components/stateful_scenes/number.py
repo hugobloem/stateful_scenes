@@ -3,23 +3,17 @@
 from __future__ import annotations
 
 import logging
-from homeassistant.helpers.device_registry import DeviceInfo
 
 # Import the device class from the component that you want to support
 from homeassistant.components.number import RestoreNumber
-from homeassistant.const import EntityCategory, STATE_UNKNOWN, STATE_UNAVAILABLE
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
-
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import StatefulScenes
-
-from .const import (
-    DOMAIN,
-    DEVICE_INFO_MANUFACTURER,
-    CONF_TRANSITION_TIME,
-)
+from .const import CONF_TRANSITION_TIME, DEVICE_INFO_MANUFACTURER, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
