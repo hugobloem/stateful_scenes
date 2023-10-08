@@ -12,9 +12,11 @@ from .const import (
     DOMAIN,
     CONF_NUMBER_TOLERANCE,
     CONF_SCENE_PATH,
+    CONF_RESTORE_STATES_ON_DEACTIVATE,
     CONF_TRANSITION_TIME,
     DEFAULT_NUMBER_TOLERANCE,
     DEFAULT_SCENE_PATH,
+    DEFAULT_RESTORE_STATES_ON_DEACTIVATE,
     DEFAULT_TRANSITION_TIME,
 )
 
@@ -81,6 +83,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             min=TOLERANCE_MIN, max=TOLERANCE_MAX, step=TOLERANCE_STEP
                         )
                     ),
+                    vol.Optional(
+                        CONF_RESTORE_STATES_ON_DEACTIVATE,
+                        default=DEFAULT_RESTORE_STATES_ON_DEACTIVATE,
+                    ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_TRANSITION_TIME, default=DEFAULT_TRANSITION_TIME
                     ): selector.NumberSelector(

@@ -4,10 +4,12 @@ DOMAIN = "stateful_scenes"
 
 CONF_SCENE_PATH = "scene_path"
 CONF_NUMBER_TOLERANCE = "number_tolerance"
+CONF_RESTORE_STATES_ON_DEACTIVATE = "restore_states_on_deactivate"
 CONF_TRANSITION_TIME = "transition_time"
 
 DEFAULT_SCENE_PATH = "scenes.yaml"
 DEFAULT_NUMBER_TOLERANCE = 1
+DEFAULT_RESTORE_STATES_ON_DEACTIVATE = False
 DEFAULT_TRANSITION_TIME = 1
 
 TOLERANCE_MIN = 0
