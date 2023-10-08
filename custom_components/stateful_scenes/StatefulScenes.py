@@ -101,10 +101,12 @@ class Scene:
         self.entities = scene_conf["entities"]
         self._is_on = None
         self._transition_time = None
+        self._restore_on_deactivate = True
 
         self.callback = None
         self.schedule_update = None
         self.states = {entity_id: False for entity_id in self.entities}
+        self.restore_states = {entity_id: None for entity_id in self.entities}
 
     @property
     def is_on(self):
@@ -128,11 +130,14 @@ class Scene:
 
     def turn_off(self):
         """Turn off all entities in the scene."""
-        self.hass.services.call(
-            domain="homeassistant",
-            service="turn_off",
-            target={"entity_id": list(self.entities.keys())},
-        )
+        if self.restore_on_deactivate:
+            self.restore()
+        else:
+            self.hass.services.call(
+                domain="homeassistant",
+                service="turn_off",
+                target={"entity_id": list(self.entities.keys())},
+            )
         self._is_on = False
 
     @property
@@ -143,6 +148,15 @@ class Scene:
     def set_transition_time(self, transition_time):
         """Set the transition time."""
         self._transition_time = transition_time
+
+    @property
+    def restore_on_deactivate(self) -> bool:
+        """Get the restore on deactivate flag."""
+        return self._restore_on_deactivate
+
+    def set_restore_on_deactivate(self, restore_on_deactivate):
+        """Set the restore on deactivate flag."""
+        self._restore_on_deactivate = restore_on_deactivate
 
     def register_callback(self, state_change_func, schedule_update_func):
         """Register callback."""
@@ -160,6 +174,7 @@ class Scene:
     def update_callback(self, entity_id, old_state, new_state):
         """Update the scene when a tracked entity changes state."""
         self.check_state(entity_id, new_state)
+        self.store_entity_state(entity_id, old_state)
         self._is_on = all(self.states.values())
         self.schedule_update(True)
 
@@ -211,6 +226,31 @@ class Scene:
         for entity_id in self.entities:
             state = self.hass.states.get(entity_id)
             self.check_state(entity_id, state)
+
+    def store_entity_state(self, entity_id, state):
+        """Store the state of an entity."""
+        self.restore_states[entity_id] = state
+
+    def restore(self):
+        """Restore the state entities."""
+        entities = {}
+        for entity_id, state in self.restore_states.items():
+            if state is None:
+                continue
+            entities[entity_id] = {"state": state.state}
+            if state.domain in ATTRIBUTES_TO_CHECK:
+                entity_attrs = state.attributes
+                for attribute in ATTRIBUTES_TO_CHECK.get(state.domain):
+                    if attribute not in entity_attrs:
+                        continue
+                    entities[entity_id][attribute] = entity_attrs[attribute]
+
+        service_data = {"entities": entities}
+        if self._transition_time is not None:
+            service_data["transition"] = self._transition_time
+        self.hass.services.call(
+            domain="scene", service="apply", service_data=service_data
+        )
 
     def compare_values(self, value1, value2):
         """Compare two values."""
