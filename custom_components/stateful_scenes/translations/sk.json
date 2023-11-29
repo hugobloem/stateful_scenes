@@ -1,0 +1,20 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "description": "Nastavte cestu k súboru scény (predvolene funguje s OS Home Assistant)",
+                "data": {
+                    "scene_path": "Cesta scény",
+                    "number_tolerance": "Tolerancia zaokrúhľovania",
+                    "restore_states_on_deactivate": "Obnovte stavy pri deaktivácii",
+                    "transition_time": "Čas prechodu"
+                }
+            }
+        },
+        "error": {
+            "invalid_yaml": "Neplatný súbor scén",
+            "yaml_not_found": "Zadaný YAML sa nenašiel",
+            "unknown": "Vyskytla sa neznáma chyba"
+        }
+    }
+}
