@@ -18,6 +18,16 @@ class StatefulScenesYamlInvalid(Exception):
     """Raised when specified yaml is invalid."""
 
 
+def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
+    """Get entity_id from scene id."""
+    entity_ids = hass.states.async_entity_ids("scene")
+    for entity_id in entity_ids:
+        state = hass.states.get(entity_id)
+        if state.attributes["id"] == id:
+            return entity_id
+    return None
+
+
 class Hub:
     """State scene class."""
 
@@ -80,9 +90,12 @@ class Hub:
 
             entities[entity_id] = attributes
 
+        entity_id = get_entity_id_from_id(self.hass, scene_conf["id"])
+
         return {
             "name": scene_conf["name"],
             "id": scene_conf["id"],
+            "entity_id": entity_id,
             "entities": entities,
         }
 
@@ -97,6 +110,7 @@ class Scene:
         self.hass = hass
         self.number_tolerance = number_tolerance
         self.name = scene_conf["name"]
+        self._entity_id = scene_conf["entity_id"]
         self._id = scene_conf["id"]
         self.entities = scene_conf["entities"]
         self._is_on = None
@@ -120,10 +134,16 @@ class Scene:
 
     def turn_on(self):
         """Turn on the scene."""
+        if self._entity_id is None:
+            self._entity_id = get_entity_id_from_id(self.hass, self._id)
+
+        if self._entity_id is None:
+            raise StatefulScenesYamlInvalid("Cannot find entity_id for: " + self.name)
+
         self.hass.services.call(
             domain="scene",
             service="turn_on",
-            target={"entity_id": "scene." + self.name.lower().replace(" ", "_")},
+            target={"entity_id": self._entity_id},
             service_data={"transition": self._transition_time},
         )
         self._is_on = True
