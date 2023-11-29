@@ -1,0 +1,20 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "description": "Stel het pad naar het scènebestand in (standaard werkt met Home Assistant OS)",
+                "data": {
+                    "scene_path": "Scènebestand pad",
+                    "number_tolerance": "Afrondingstolerantie",
+                    "restore_states_on_deactivate": "Status herstellen bij deactivering",
+                    "transition_time": "Transitie tijd"
+                }
+            }
+        },
+        "error": {
+            "invalid_yaml": "Ongeldig scènebestand",
+            "yaml_not_found": "YAML bestand niet gevonden",
+            "unknown": "Onbekende fout"
+        }
+    }
+}
