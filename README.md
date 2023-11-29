@@ -1,23 +1,19 @@
 # Stateful Scenes
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-gren.svg)](https://github.com/custom-components/hacs)
+![version](https://img.shields.io/github/v/release/hugobloem/stateful_scenes)
+
 > Do you want to use your Home Assistant scenes in HomeKit, but get annoyed when the scenes do not stay ‘on’?
 
 Stateful Scenes solves this problem by creating a switch for each scene and inferring the state of the scene by analysing the entities in the scene. Plus, when you activate a scene in Home Assistant, the scene will also turn on in HomeKit—magic!
 
 ## Installation
-### HACS – custom repository
-Click this button:
+### HACS
+Install via [HACS](https://hacs.xyz) by searching for `stateful scenes` in the integrations section, or simply click the button:
 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=hugobloem&repository=stateful_scenes&category=integration)
 
-Or, in HACS go to integrations and then click the three buttons at the top right. From there, add a custom repository. Repository name is `hugobloem/stateful_scenes` and the category is `integration`.
-
-![Custom repository screenshot](media/custom-repository.png)
-
-### HACS – default repository ([not available yet](https://github.com/hacs/default/pull/2033))
-Install via [HACS](https://hacs.xyz) by searching for `stateful scenes` in the integrations section
-
 ### Manual
-Or, clone the repository and copy the custom_components folder to your home assistant config folder.
+Clone the repository and copy the custom_components folder to your home assistant config folder.
 
 ```bash
 git clone https://github.com/hugobloem/stateful_scenes.git
