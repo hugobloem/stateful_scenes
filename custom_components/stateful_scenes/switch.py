@@ -96,6 +96,7 @@ class StatefulSceneSwitch(SwitchEntity):
         self._scene = scene
         self._is_on = None
         self._name = "Stateful Scene"
+        self._icon = scene.icon
         self._attr_unique_id = f"stateful_{scene.id}"
 
         self.register_callback()
@@ -109,6 +110,10 @@ class StatefulSceneSwitch(SwitchEntity):
     def name(self) -> str:
         """Return the display name of this light."""
         return self._name
+
+    @property
+    def icon(self) -> str | none:
+        return self._icon
 
     @property
     def device_info(self) -> DeviceInfo | None:
