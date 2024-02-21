@@ -4,6 +4,7 @@ import logging
 
 import yaml
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import area_registry, entity_registry, device_registry
 
 from .const import ATTRIBUTES_TO_CHECK
 
@@ -40,27 +41,46 @@ class Hub:
         self.hass = hass
         self.scenes = []
 
-        scene_confs = self.load_scenes()
-        for scene_conf in scene_confs:
+        scene_entity_ids = self.get_homeassistant_scenes_entity_ids()
+        for scene_entity_id in scene_entity_ids:
             self.scenes.append(
                 Scene(
                     self.hass,
-                    self.extract_scene_configuration(scene_conf),
+                    self.get_homeassistant_scene(scene_entity_id),
                     self.number_tolerance,
                 )
             )
 
-    def load_scenes(self) -> list:
-        """Load scenes from yaml file."""
-        try:
-            with open(self.scene_path, encoding="utf-8") as f:
-                scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
-        except OSError as err:
-            raise StatefulScenesYamlNotFound(
-                "No scenes found in " + self.scene_path
-            ) from err
+    # def load_scenes(self) -> list:
+    #     """Load scenes from yaml file."""
+    #     try:
+    #         with open(self.scene_path, encoding="utf-8") as f:
+    #             scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
+    #     except OSError as err:
+    #         raise StatefulScenesYamlNotFound(
+    #             "No scenes found in " + self.scene_path
+    #         ) from err
 
-        return scenes_confs
+    #     return scenes_confs
+
+    def get_homeassistant_scenes_entity_ids(self) -> list:
+        """Get all scene entity ids."""
+        entity_ids = self.hass.data['homeassistant_scene'].entities.keys()
+        return entity_ids
+
+    def get_homeassistant_scene(self, entity_id) -> dict:
+
+        scene_config = self.hass.data['homeassistant_scene'].entities[entity_id].scene_config
+        entities = {}
+        states = scene_config.states
+        for state, config in states.items():
+            entities[state] = {'state': config.state}.update(config.attributes)
+        return {
+            "name": scene_config.name,
+            "id": scene_config.id,
+            "entity_id": entity_id,
+            "entities": entities,
+        }
 
     def validate_scene(self, scene_conf) -> None:
         """Validate scene configuration."""
@@ -76,28 +96,28 @@ class Hub:
 
         return True
 
-    def extract_scene_configuration(self, scene_conf) -> dict:
-        """Extract entities and attributes from a scene."""
-        entities = {}
-        for entity_id, scene_attributes in scene_conf["entities"].items():
-            domain = entity_id.split(".")[0]
-            attributes = {"state": scene_attributes["state"]}
+    # def extract_scene_configuration(self, scene_conf) -> dict:
+    #     """Extract entities and attributes from a scene."""
+    #     entities = {}
+    #     for entity_id, scene_attributes in scene_conf["entities"].items():
+    #         domain = entity_id.split(".")[0]
+    #         attributes = {"state": scene_attributes["state"]}
 
-            if domain in ATTRIBUTES_TO_CHECK:
-                for attribute, value in scene_attributes.items():
-                    if attribute in ATTRIBUTES_TO_CHECK.get(domain):
-                        attributes[attribute] = value
+    #         if domain in ATTRIBUTES_TO_CHECK:
+    #             for attribute, value in scene_attributes.items():
+    #                 if attribute in ATTRIBUTES_TO_CHECK.get(domain):
+    #                     attributes[attribute] = value
 
-            entities[entity_id] = attributes
+    #         entities[entity_id] = attributes
 
-        entity_id = get_entity_id_from_id(self.hass, scene_conf["id"])
+    #     entity_id = get_entity_id_from_id(self.hass, scene_conf["id"])
 
-        return {
-            "name": scene_conf["name"],
-            "id": scene_conf["id"],
-            "entity_id": entity_id,
-            "entities": entities,
-        }
+    #     return {
+    #         "name": scene_conf["name"],
+    #         "id": scene_conf["id"],
+    #         "entity_id": entity_id,
+    #         "entities": entities,
+    #     }
 
 
 class Scene:
