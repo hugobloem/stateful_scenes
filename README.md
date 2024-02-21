@@ -1,6 +1,8 @@
 # Stateful Scenes
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-gren.svg)](https://github.com/custom-components/hacs)
 ![version](https://img.shields.io/github/v/release/hugobloem/stateful_scenes)
+![GitHub all releases](https://img.shields.io/github/downloads/hugobloem/stateful_scenes/total)
+![GitHub release (latest by SemVer)](https://img.shields.io/github/downloads/hugobloem/stateful_scenes/latest/total)
 
 > Do you want to use your Home Assistant scenes in HomeKit, but get annoyed when the scenes do not stay ‘on’?
 
