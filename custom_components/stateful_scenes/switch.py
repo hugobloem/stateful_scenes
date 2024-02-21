@@ -112,7 +112,7 @@ class StatefulSceneSwitch(SwitchEntity):
         return self._name
 
     @property
-    def icon(self) -> str | none:
+    def icon(self) -> str | None:
         """Return the icon of this light."""
         return self._icon
 
