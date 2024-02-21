@@ -95,6 +95,7 @@ class Hub:
         return {
             "name": scene_conf["name"],
             "id": scene_conf["id"],
+            "icon": scene_conf["icon"] if "icon" in scene_conf else None,
             "entity_id": entity_id,
             "entities": entities,
         }
@@ -113,6 +114,7 @@ class Scene:
         self._entity_id = scene_conf["entity_id"]
         self._id = scene_conf["id"]
         self.entities = scene_conf["entities"]
+        self.icon = scene_conf["icon"]
         self._is_on = None
         self._transition_time = None
         self._restore_on_deactivate = True
