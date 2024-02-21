@@ -95,7 +95,7 @@ class Hub:
         return {
             "name": scene_conf["name"],
             "id": scene_conf["id"],
-            "icon": scene_conf["icon"],
+            "icon": scene_conf["icon"] if "icon" in scene_conf else None,
             "entity_id": entity_id,
             "entities": entities,
         }
