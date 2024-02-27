@@ -45,6 +45,7 @@ class Hub:
         Raises:
             StatefulScenesYamlNotFound: If the yaml file is not found
             StatefulScenesYamlInvalid: If the yaml file is invalid
+
         """
         self.scene_path = scene_path
         self.number_tolerance = number_tolerance
@@ -95,6 +96,7 @@ class Hub:
 
         Returns:
             bool: True if the scene is valid
+
         """
 
         if "entities" not in scene_conf:
@@ -116,6 +118,7 @@ class Hub:
 
         Returns:
             dict: Scene configuration
+
         """
         entities = {}
         for entity_id, scene_attributes in scene_conf["entities"].items():
