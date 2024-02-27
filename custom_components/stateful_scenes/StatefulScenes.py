@@ -3,6 +3,7 @@
 import logging
 
 import yaml
+import os
 from homeassistant.core import HomeAssistant
 
 from .const import ATTRIBUTES_TO_CHECK
@@ -32,9 +33,20 @@ class Hub:
     """State scene class."""
 
     def __init__(
-        self, hass: HomeAssistant, scene_path: str, number_tolerance=1
+        self, hass: HomeAssistant, scene_path: str, number_tolerance:int=1
     ) -> None:
-        """Initialize."""
+        """Initialize the Hub class.
+
+        Args:
+            hass (HomeAssistant): Home Assistant instance
+            scene_path (str): Path to the yaml file containing the scenes
+            number_tolerance (int): Tolerance for comparing numbers
+
+        Raises:
+            StatefulScenesYamlNotFound: If the yaml file is not found
+            StatefulScenesYamlInvalid: If the yaml file is invalid
+
+        """
         self.scene_path = scene_path
         self.number_tolerance = number_tolerance
         self.hass = hass
@@ -42,6 +54,8 @@ class Hub:
 
         scene_confs = self.load_scenes()
         for scene_conf in scene_confs:
+            if not self.validate_scene(scene_conf):
+                continue
             self.scenes.append(
                 Scene(
                     self.hass,
@@ -52,18 +66,38 @@ class Hub:
 
     def load_scenes(self) -> list:
         """Load scenes from yaml file."""
+        # check if file exists
+        if self.scene_path is None:
+            raise StatefulScenesYamlNotFound("Scenes file not specified.")
+        if not os.path.exists(self.scene_path):
+            raise StatefulScenesYamlNotFound("No scenes file " + self.scene_path)
+
         try:
             with open(self.scene_path, encoding="utf-8") as f:
                 scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
         except OSError as err:
-            raise StatefulScenesYamlNotFound(
+            raise StatefulScenesYamlInvalid(
                 "No scenes found in " + self.scene_path
             ) from err
 
+        if not scenes_confs or not isinstance(scenes_confs, list):
+            raise StatefulScenesYamlInvalid("No scenes found in " + self.scene_path)
+
         return scenes_confs
 
-    def validate_scene(self, scene_conf) -> None:
-        """Validate scene configuration."""
+    def validate_scene(self, scene_conf: dict) -> None:
+        """Validate scene configuration.
+
+        Args:
+            scene_conf (dict): Scene configuration
+
+        Raises:
+            StatefulScenesYamlInvalid: If the scene is invalid
+
+        Returns:
+            bool: True if the scene is valid
+
+        """
 
         if "entities" not in scene_conf:
             raise StatefulScenesYamlInvalid("Scene is missing entities: " + scene_conf)
@@ -76,8 +110,16 @@ class Hub:
 
         return True
 
-    def extract_scene_configuration(self, scene_conf) -> dict:
-        """Extract entities and attributes from a scene."""
+    def extract_scene_configuration(self, scene_conf: dict) -> dict:
+        """Extract entities and attributes from a scene.
+
+        Args:
+            scene_conf (dict): Scene configuration
+
+        Returns:
+            dict: Scene configuration
+
+        """
         entities = {}
         for entity_id, scene_attributes in scene_conf["entities"].items():
             domain = entity_id.split(".")[0]
