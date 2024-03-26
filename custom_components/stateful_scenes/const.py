@@ -22,7 +22,7 @@ TRANSITION_STEP = 0.5
 
 ATTRIBUTES_TO_CHECK = {
     "light": {"brightness", "rgb_color", "effect"},
-    "cover": {"position"},
+    "cover": {"current_position"},
     "media_player": {"volume_level", "source"},
     "fan": {"direction", "oscillating", "percentage"},
 }
