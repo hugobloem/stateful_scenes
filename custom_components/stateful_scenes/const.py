@@ -25,6 +25,7 @@ ATTRIBUTES_TO_CHECK = {
     "cover": {"current_position"},
     "media_player": {"volume_level", "source"},
     "fan": {"direction", "oscillating", "percentage"},
+    "climate": {"system_mode", "temperature"}
 }
 
 DEVICE_INFO_MANUFACTURER = "Stateful Scenes"
