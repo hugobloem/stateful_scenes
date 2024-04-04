@@ -83,7 +83,13 @@ class Hub:
 
         for entity_id, conf in external_scenes.items():
             scene_conf = self.prepare_external_scene(entity_id, conf["entities"])
-            self.scenes.append(Scene(self.hass, scene_conf))
+            self.scenes.append(
+                Scene(
+                    self.hass,
+                    self.extract_scene_configuration(scene_conf),
+                    self.number_tolerance,
+                )
+            )
 
     def load_scenes(self) -> list:
         """Load scenes from yaml file."""
@@ -160,7 +166,7 @@ class Hub:
             "id": scene_conf["id"],
             "icon": scene_conf.get("icon", None),
             "entity_id": entity_id,
-            "learn": False,
+            "learn": scene_conf.get("learn", False),
             "entities": entities,
         }
 

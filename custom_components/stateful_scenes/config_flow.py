@@ -190,10 +190,20 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         ]
         entities = self.configuration[CONF_EXTERNAL_SCENES][entity_id]["entities"]
 
+        await self.hass.services.async_call(
+            domain="scene",
+            service="turn_on",
+            target={"entity_id": entity_id},
+            service_data={"transition": 0},
+        )
+
         if user_input is not None and user_input.get(CONF_EXTERNAL_SCENE_ACTIVE, False):
             entity_conf = {}
             for entity in entities:
-                entity_conf[entity] = self.hass.states.get(entity).__dict__
+                state = self.hass.states.get(entity)
+                state_dict = {"state": state.state}
+                state_dict.update(state.attributes)
+                entity_conf[entity] = state_dict
 
             self.configuration[CONF_EXTERNAL_SCENES][entity_id]["entities"] = (
                 entity_conf
