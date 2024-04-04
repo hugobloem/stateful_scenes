@@ -29,17 +29,34 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
     return None
 
 
+def get_id_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
+    """Get scene id from entity_id."""
+    state = hass.states.get(entity_id)
+    return state.attributes["id"]
+
+
+def get_name_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
+    """Get scene name from entity_id."""
+    state = hass.states.get(entity_id)
+    return state.attributes["friendly_name"]
+
+
 class Hub:
     """State scene class."""
 
     def __init__(
-        self, hass: HomeAssistant, scene_path: str, number_tolerance:int=1
+        self,
+        hass: HomeAssistant,
+        scene_path: str,
+        external_scenes: dict = {},
+        number_tolerance: int = 1,
     ) -> None:
         """Initialize the Hub class.
 
         Args:
             hass (HomeAssistant): Home Assistant instance
             scene_path (str): Path to the yaml file containing the scenes
+            external_scenes (list): List of external scenes
             number_tolerance (int): Tolerance for comparing numbers
 
         Raises:
@@ -63,6 +80,10 @@ class Hub:
                     self.number_tolerance,
                 )
             )
+
+        for entity_id, conf in external_scenes.items():
+            scene_conf = self.prepare_external_scene(entity_id, conf["entities"])
+            self.scenes.append(Scene(self.hass, scene_conf))
 
     def load_scenes(self) -> list:
         """Load scenes from yaml file."""
@@ -139,6 +160,18 @@ class Hub:
             "id": scene_conf["id"],
             "icon": scene_conf.get("icon", None),
             "entity_id": entity_id,
+            "learn": False,
+            "entities": entities,
+        }
+
+    def prepare_external_scene(self, entity_id, entities) -> dict:
+        """Prepare external scene configuration."""
+        return {
+            "name": get_name_from_entity_id(self.hass, entity_id),
+            "id": get_id_from_entity_id(self.hass, entity_id),
+            "icon": None,
+            "entity_id": entity_id,
+            "learn": True,
             "entities": entities,
         }
 
@@ -155,6 +188,7 @@ class Scene:
         self.name = scene_conf["name"]
         self._entity_id = scene_conf["entity_id"]
         self._id = scene_conf["id"]
+        self.learn = scene_conf["learn"]
         self.entities = scene_conf["entities"]
         self.icon = scene_conf["icon"]
         self._is_on = None
@@ -166,6 +200,9 @@ class Scene:
         self.states = {entity_id: False for entity_id in self.entities}
         self.restore_states = {entity_id: None for entity_id in self.entities}
 
+        if self.learn:
+            self.learned = False
+
     @property
     def is_on(self):
         """Return true if the scene is on."""
@@ -174,6 +211,8 @@ class Scene:
     @property
     def id(self):
         """Return the id of the scene."""
+        if self.learn:
+            return self._id + "_learned"
         return self._id
 
     def turn_on(self):

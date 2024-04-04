@@ -37,6 +37,7 @@ async def async_setup_entry(
         for scene in hub.scenes
     ]
 
+
     add_entities(stateful_scene_number)
 
     return True

@@ -7,7 +7,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
 from .StatefulScenes import Hub
-from .const import DOMAIN, CONF_SCENE_PATH, CONF_NUMBER_TOLERANCE
+from .const import DOMAIN, CONF_SCENE_PATH, CONF_NUMBER_TOLERANCE, CONF_EXTERNAL_SCENES
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
@@ -23,6 +23,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass=hass,
         scene_path=entry.data[CONF_SCENE_PATH],
         number_tolerance=entry.data[CONF_NUMBER_TOLERANCE],
+        external_scenes=entry.data.get(CONF_EXTERNAL_SCENES, []),
     )
 
     for platform in PLATFORMS:
