@@ -34,7 +34,7 @@ from .const import (
     TRANSITION_MAX,
     TRANSITION_STEP,
 )
-from .StatefulScenes import Hub, StatefulScenesYamlInvalid, StatefulScenesYamlNotFound
+from .StatefulScenes import Hub, Scene, StatefulScenesYamlInvalid, StatefulScenesYamlNotFound
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -113,12 +113,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         excluded_entities = [scene._entity_id for scene in self.hub.scenes]
-        excluded_entities = []  # TODO: remove this line
         all_entities = self.hass.states.async_entity_ids("scene")
 
-        if user_input is not None or all(
+        if all(
             entity in excluded_entities for entity in all_entities
         ):
+            return self.async_create_entry(
+                title="Stateful Scenes",
+                data=self.configuration,
+            )
+
+        if user_input is not None:
             external_scenes = user_input.get(CONF_EXTERNAL_SCENES, [])
             external_scenes = {scene: {} for scene in external_scenes}
             self.configuration[CONF_EXTERNAL_SCENES] = external_scenes
@@ -198,15 +203,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
         if user_input is not None and user_input.get(CONF_EXTERNAL_SCENE_ACTIVE, False):
-            entity_conf = {}
-            for entity in entities:
-                state = self.hass.states.get(entity)
-                state_dict = {"state": state.state}
-                state_dict.update(state.attributes)
-                entity_conf[entity] = state_dict
-
             self.configuration[CONF_EXTERNAL_SCENES][entity_id]["entities"] = (
-                entity_conf
+                Scene.learn_scene_states(self.hass, entities)
             )
             self.curr_external_scene += 1
 
