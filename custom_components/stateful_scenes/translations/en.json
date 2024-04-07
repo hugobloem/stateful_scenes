@@ -9,6 +9,26 @@
                     "restore_states_on_deactivate": "Restore states on deactivation",
                     "transition_time": "Transition time"
                 }
+            },
+            "select_external_scenes": {
+                "description": "Select the scenes not in the config file that you'd like to configure. These scenes will need to be learned by Stateful Scenes.",
+                "data": {
+                    "external_scenes": "External scenes"
+                }
+            },
+            "configure_external_scene_entities": {
+                "description": "Select entities that belong to {scene_name}.\nNote: upon submitting the scene will be turned on!",
+                "data": {
+                    "scene_name": "Scene name",
+                    "scene_id": "Scene ID",
+                    "scene_entities": "Scene entities"
+                }
+            },
+            "learn_external_scene": {
+                "description": "Confirm whether the scene has been activated.",
+                "data": {
+                    "external_scene_active": "Activated?"
+                }
             }
         },
         "error": {
