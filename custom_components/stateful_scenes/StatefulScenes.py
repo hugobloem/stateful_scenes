@@ -218,7 +218,7 @@ class Scene:
     def id(self):
         """Return the id of the scene."""
         if self.learn:
-            return self._id + "_learned" # avoids non-unique id during testing
+            return self._id + "_learned"  # avoids non-unique id during testing
         return self._id
 
     def turn_on(self):
