@@ -218,7 +218,7 @@ class Scene:
     def id(self):
         """Return the id of the scene."""
         if self.learn:
-            return self._id + "_learned"
+            return self._id + "_learned" # avoids non-unique id during testing
         return self._id
 
     def turn_on(self):
@@ -397,3 +397,13 @@ class Scene:
     def compare_numbers(self, number1, number2):
         """Compare two numbers."""
         return abs(number1 - number2) <= self.number_tolerance
+
+    @staticmethod
+    def learn_scene_states(hass: HomeAssistant, entities: list) -> dict:
+        """Learn the state of the scene."""
+        conf = {}
+        for entity in entities:
+            state = hass.states.get(entity)
+            conf[entity] = {"state": state.state}
+            conf[entity].update(state.attributes)
+        return conf
