@@ -9,6 +9,26 @@
                     "restore_states_on_deactivate": "Obnovte stavy pri deaktivácii",
                     "transition_time": "Čas prechodu"
                 }
+            },
+            "select_external_scenes": {
+                "description": "Vyberte scény, ktoré nie sú v konfiguračnom súbore, ktoré chcete nakonfigurovať. Tieto scény sa budú musieť naučiť pomocou Stateful Scenes.",
+                "data": {
+                    "external_scenes": "Vonkajšie scény"
+                }
+            },
+            "configure_external_scene_entities": {
+                "description": "Vyberte entity, ktoré patria {scene_name}.\nPoznámka: po odoslaní bude scéna zapnutá!",
+                "data": {
+                    "scene_name": "Názov scény",
+                    "scene_id": "ID scény",
+                    "scene_entities": "Scénické entity"
+                }
+            },
+            "learn_external_scene": {
+                "description": "Potvrďte, či bola scéna aktivovaná.",
+                "data": {
+                    "external_scene_active": "Aktivovaná?"
+                }
             }
         },
         "error": {
