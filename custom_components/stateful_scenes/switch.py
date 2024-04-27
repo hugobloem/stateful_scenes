@@ -122,6 +122,7 @@ class StatefulSceneSwitch(SwitchEntity):
         return DeviceInfo(
             identifiers={(self._scene.id,)},
             name=self._scene.name,
+            suggested_area=self._scene.area_id,
             manufacturer=DEVICE_INFO_MANUFACTURER,
         )
 
@@ -188,6 +189,7 @@ class RestoreOnDeactivate(SwitchEntity):
             identifiers={(self._scene.id,)},
             name=self._scene.name,
             manufacturer=DEVICE_INFO_MANUFACTURER,
+            suggested_area=self._scene.area_id,
         )
 
     @property

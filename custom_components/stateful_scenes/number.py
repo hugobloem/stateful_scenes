@@ -79,6 +79,7 @@ class TransitionNumber(RestoreNumber):
             identifiers={(self._scene.id,)},
             name=self._scene.name,
             manufacturer=DEVICE_INFO_MANUFACTURER,
+            suggested_area=self._scene.area_id,
         )
 
     def set_native_value(self, value: float) -> None:
