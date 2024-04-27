@@ -5,6 +5,7 @@ import logging
 import yaml
 import os
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.template import area_id
 
 from .const import ATTRIBUTES_TO_CHECK
 
@@ -27,7 +28,6 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
         if state.attributes["id"] == id:
             return entity_id
     return None
-
 
 def get_id_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
     """Get scene id from entity_id."""
@@ -166,6 +166,7 @@ class Hub:
             "id": scene_conf["id"],
             "icon": scene_conf.get("icon", None),
             "entity_id": entity_id,
+            "area": area_id(self.hass, entity_id),
             "learn": scene_conf.get("learn", False),
             "entities": entities,
         }
@@ -177,6 +178,7 @@ class Hub:
             "id": get_id_from_entity_id(self.hass, entity_id),
             "icon": None,
             "entity_id": entity_id,
+            "area": area_id(self.hass, entity_id),
             "learn": True,
             "entities": entities,
         }
@@ -194,6 +196,7 @@ class Scene:
         self.name = scene_conf["name"]
         self._entity_id = scene_conf["entity_id"]
         self._id = scene_conf["id"]
+        self.area_id = scene_conf["area"]
         self.learn = scene_conf["learn"]
         self.entities = scene_conf["entities"]
         self.icon = scene_conf["icon"]
