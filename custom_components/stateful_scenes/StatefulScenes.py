@@ -25,14 +25,14 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
     entity_ids = hass.states.async_entity_ids("scene")
     for entity_id in entity_ids:
         state = hass.states.get(entity_id)
-        if state.attributes["id"] == id:
+        if state.attributes.get("id", None) == id:
             return entity_id
     return None
 
 def get_id_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
     """Get scene id from entity_id."""
     state = hass.states.get(entity_id)
-    return state.attributes["id"]
+    return state.attributes.get("id", entity_id)
 
 
 def get_name_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
