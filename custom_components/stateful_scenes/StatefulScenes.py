@@ -42,6 +42,12 @@ def get_name_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
     name = er.async_get(entity_id).original_name
     return name if name is not None else entity_id
 
+def get_icon_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
+    """Get scene icon from entity_id."""
+    er = entity_registry.async_get(hass)
+    icon = er.async_get(entity_id).icon
+    return icon if icon is not None else None
+
 
 class Hub:
     """State scene class."""
@@ -171,7 +177,7 @@ class Hub:
         return {
             "name": scene_conf["name"],
             "id": scene_conf.get("id", entity_id),
-            "icon": scene_conf.get("icon", None),
+            "icon": scene_conf.get("icon", get_icon_from_entity_id(self.hass, entity_id)),
             "entity_id": entity_id,
             "area": area_id(self.hass, entity_id),
             "learn": scene_conf.get("learn", False),
@@ -183,7 +189,7 @@ class Hub:
         return {
             "name": get_name_from_entity_id(self.hass, entity_id),
             "id": get_id_from_entity_id(self.hass, entity_id),
-            "icon": None,
+            "icon": get_icon_from_entity_id(self.hass, entity_id),
             "entity_id": entity_id,
             "area": area_id(self.hass, entity_id),
             "learn": True,
