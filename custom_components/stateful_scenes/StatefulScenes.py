@@ -6,6 +6,7 @@ import yaml
 import os
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.template import area_id
+from homeassistant.helpers import entity_registry
 
 from .const import ATTRIBUTES_TO_CHECK
 
@@ -31,14 +32,15 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
 
 def get_id_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
     """Get scene id from entity_id."""
-    state = hass.states.get(entity_id)
-    return state.attributes.get("id", entity_id)
+    er = entity_registry.async_get(hass)
+    return entity_registry.async_resolve_entity_id(er, entity_id)
 
 
 def get_name_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
     """Get scene name from entity_id."""
-    state = hass.states.get(entity_id)
-    return state.attributes["friendly_name"]
+    er = entity_registry.async_get(hass)
+    name = er.async_get(entity_id).original_name
+    return name if name is not None else entity_id
 
 
 class Hub:
@@ -127,12 +129,15 @@ class Hub:
         """
 
         if "entities" not in scene_conf:
-            raise StatefulScenesYamlInvalid("Scene is missing entities: " + scene_conf)
+            raise StatefulScenesYamlInvalid("Scene is missing entities: " + scene_conf["name"])
+
+        if "id" not in scene_conf:
+            raise StatefulScenesYamlInvalid("Scene is missing id: " + scene_conf["name"])
 
         for entity_id, scene_attributes in scene_conf["entities"].items():
             if "state" not in scene_attributes:
                 raise StatefulScenesYamlInvalid(
-                    "Scene is missing state for entity " + entity_id + scene_conf
+                    "Scene is missing state for entity " + entity_id + scene_conf["name"]
                 )
 
         return True
@@ -159,11 +164,13 @@ class Hub:
 
             entities[entity_id] = attributes
 
-        entity_id = get_entity_id_from_id(self.hass, scene_conf["id"])
+        entity_id = scene_conf.get("entity_id", None)
+        if entity_id is None:
+            entity_id = get_entity_id_from_id(self.hass, scene_conf.get("id"))
 
         return {
             "name": scene_conf["name"],
-            "id": scene_conf["id"],
+            "id": scene_conf.get("id", entity_id),
             "icon": scene_conf.get("icon", None),
             "entity_id": entity_id,
             "area": area_id(self.hass, entity_id),
@@ -212,6 +219,9 @@ class Scene:
         if self.learn:
             self.learned = False
 
+        if self._entity_id is None:
+            self._entity_id = get_entity_id_from_id(self.hass, self._id)
+
     @property
     def is_on(self):
         """Return true if the scene is on."""
@@ -227,10 +237,7 @@ class Scene:
     def turn_on(self):
         """Turn on the scene."""
         if self._entity_id is None:
-            self._entity_id = get_entity_id_from_id(self.hass, self._id)
-
-        if self._entity_id is None:
-            raise StatefulScenesYamlInvalid("Cannot find entity_id for: " + self.name)
+            raise StatefulScenesYamlInvalid("Cannot find entity_id for: " + self.name + self._entity_id)
 
         self.hass.services.call(
             domain="scene",
