@@ -13,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import StatefulScenes
-from .const import CONF_TRANSITION_TIME, DEVICE_INFO_MANUFACTURER, DOMAIN
+from .const import CONF_TRANSITION_TIME, CONF_DEBOUNCE_TIME, DEBOUNCE_MAX, DEBOUNCE_MIN, DEBOUNCE_STEP, DEVICE_INFO_MANUFACTURER, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,9 +36,12 @@ async def async_setup_entry(
         TransitionNumber(scene, entry.data.get(CONF_TRANSITION_TIME))
         for scene in hub.scenes
     ]
+    debounce_entities = [
+        DebounceTime(scene, entry.data.get(CONF_DEBOUNCE_TIME))
+        for scene in hub.scenes
+    ]
 
-
-    add_entities(stateful_scene_number)
+    add_entities(stateful_scene_number + debounce_entities)
 
     return True
 
@@ -104,3 +107,64 @@ class TransitionNumber(RestoreNumber):
     def native_value(self) -> float:
         """Return the entity value to represent the entity state."""
         return self._scene.transition_time
+
+
+class DebounceTime(RestoreNumber):
+    """Time to wait after activating a scene switch until evaluating if the scene is still active"""
+
+    _attr_native_max_value = DEBOUNCE_MAX
+    _attr_native_min_value = DEBOUNCE_MIN
+    _attr_native_step = DEBOUNCE_STEP
+    _attr_native_unit_of_measurement = "seconds"
+    _attr_name = "Debounce Time"
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(self, scene: StatefulScenes.Scene, debounce_time: float = 0) -> None:
+        """Initialize."""
+        self._scene = scene
+        self._name = f"{scene.name} Debounce Time"
+        self._attr_unique_id = f"{scene.id}_debounce_time"
+
+        _LOGGER.debug(
+            "Setting initial debounce time for %s to %s",
+            scene.name,
+            debounce_time,
+        )
+        self._scene.set_debounce_time(debounce_time)
+
+    @property
+    def name(self) -> str:
+        """Return the display name of this light."""
+        return self._name
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(self._scene.id,)},
+            name=self._scene.name,
+            manufacturer=DEVICE_INFO_MANUFACTURER,
+        )
+
+    def set_native_value(self, value: float) -> None:
+        """Update the current value."""
+        self._scene.set_debounce_time(value)
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last state."""
+        await super().async_added_to_hass()
+        if (last_state := await self.async_get_last_state()) and (
+            last_number_data := await self.async_get_last_number_data()
+        ):
+            if last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+                _LOGGER.debug(
+                    "Restoring debounce time for %s to %s",
+                    self._scene.name,
+                    last_number_data.native_value,
+                )
+                self._scene.set_debounce_time(last_number_data.native_value)
+
+    @property
+    def native_value(self) -> float:
+        """Return the entity value to represent the entity state."""
+        return self._scene.debounce_time
