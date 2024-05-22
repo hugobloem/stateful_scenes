@@ -281,7 +281,7 @@ class Scene:
         return self._debounce_time
     
     def set_debounce_time(self, debounce_time: float):
-        self._debounce_time = debounce_time
+        self._debounce_time = debounce_time or 0.0
 
     @property
     def restore_on_deactivate(self) -> bool:
