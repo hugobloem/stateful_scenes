@@ -108,6 +108,27 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_reconfigure(self, user_input=None):
+        """Handle a flow step for reconfiguring the integration."""
+        errors = {}
+        try:
+            self.hub = Hub(
+                hass=self.hass,
+                scene_path=user_input[CONF_SCENE_PATH],
+                number_tolerance=user_input[CONF_NUMBER_TOLERANCE],
+            )
+        except StatefulScenesYamlInvalid as err:
+            _LOGGER.warning(err)
+            errors["base"] = "invalid_yaml"
+        except StatefulScenesYamlNotFound as err:
+            _LOGGER.warning(err)
+            errors["base"] = "yaml_not_found"
+        except Exception as err:
+            _LOGGER.warning(err)
+            errors["base"] = "unknown"
+        else:
+            return await self.async_step_select_external_scenes()
+
     async def async_step_select_external_scenes(self, user_input=None):
         """Handle a flow step for selecting external scenes."""
         errors = {}
