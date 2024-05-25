@@ -38,17 +38,22 @@ async def async_setup_entry(
         data,
         entry,
     )
-    hub = data[entry.entry_id]
 
-    stateful_scene_number = [
-        TransitionNumber(scene, entry.data.get(CONF_TRANSITION_TIME))
-        for scene in hub.scenes
-    ]
-    debounce_entities = [
-        DebounceTime(scene, entry.data.get(CONF_DEBOUNCE_TIME)) for scene in hub.scenes
-    ]
+    entities = []
+    if isinstance(data[entry.entry_id], StatefulScenes.Hub):
+        hub = data[entry.entry_id]
+        for scene in hub.scenes:
+            entities += [TransitionNumber(scene), DebounceTime(scene)]
 
-    add_entities(stateful_scene_number + debounce_entities)
+    elif isinstance(data[entry.entry_id], StatefulScenes.Scene):
+        scene = data[entry.entry_id]
+        entities += [TransitionNumber(scene), DebounceTime(scene)]
+
+    else:
+        _LOGGER.error("Invalid entity type for %s", entry.entry_id)
+        return False
+
+    add_entities(entities)
 
     return True
 
@@ -63,19 +68,19 @@ class TransitionNumber(RestoreNumber):
     _attr_name = "Transition Time"
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, scene: StatefulScenes.Scene, transition_time=None) -> None:
+    def __init__(self, scene: StatefulScenes.Scene) -> None:
         """Initialize."""
         self._scene = scene
         self._name = f"{scene.name} Transition Time"
         self._attr_unique_id = f"{scene.id}_transition_time"
 
-        if transition_time is not None:
+        if scene.transition_time is not None:
             _LOGGER.debug(
                 "Setting initial transition time for %s to %s",
                 scene.name,
-                transition_time,
+                scene.transition_time,
             )
-            self._scene.set_transition_time(transition_time)
+            self._scene.set_transition_time(scene.transition_time)
 
     @property
     def name(self) -> str:
@@ -126,7 +131,7 @@ class DebounceTime(RestoreNumber):
     _attr_name = "Debounce Time"
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, scene: StatefulScenes.Scene, debounce_time: float = 0) -> None:
+    def __init__(self, scene: StatefulScenes.Scene) -> None:
         """Initialize."""
         self._scene = scene
         self._name = f"{scene.name} Debounce Time"
@@ -135,9 +140,9 @@ class DebounceTime(RestoreNumber):
         _LOGGER.debug(
             "Setting initial debounce time for %s to %s",
             scene.name,
-            debounce_time,
+            scene.debounce_time,
         )
-        self._scene.set_debounce_time(debounce_time)
+        self._scene.set_debounce_time(scene.debounce_time)
 
     @property
     def name(self) -> str:
