@@ -26,6 +26,11 @@ from .const import (
 )
 
 from .const import (
+    CONF_DEBOUNCE_TIME,
+    DEBOUNCE_MAX,
+    DEBOUNCE_MIN,
+    DEBOUNCE_STEP,
+    DEFAULT_DEBOUNCE_TIME,
     TOLERANCE_MIN,
     TOLERANCE_MAX,
     TOLERANCE_STEP,
@@ -111,6 +116,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=TRANSITION_MIN, max=TRANSITION_MAX, step=TRANSITION_STEP
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_DEBOUNCE_TIME, default=DEFAULT_DEBOUNCE_TIME
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=DEBOUNCE_MIN, max=DEBOUNCE_MAX, step=DEBOUNCE_STEP
                         )
                     ),
                 }

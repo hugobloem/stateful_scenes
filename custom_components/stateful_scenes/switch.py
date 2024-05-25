@@ -150,6 +150,7 @@ class StatefulSceneSwitch(SwitchEntity):
 
         This is the only method that should fetch new data for Home Assistant.
         """
+        self._scene.check_all_states()
         self._is_on = self._scene.is_on
 
     def register_callback(self) -> None:
