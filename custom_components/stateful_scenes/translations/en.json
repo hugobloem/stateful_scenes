@@ -7,7 +7,8 @@
                     "scene_path": "Scene path",
                     "number_tolerance": "Rounding tolerance",
                     "restore_states_on_deactivate": "Restore states on deactivation",
-                    "transition_time": "Transition time"
+                    "transition_time": "Transition time",
+                    "debounce_time": "Debounce time"
                 }
             },
             "select_external_scenes": {
