@@ -14,8 +14,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import StatefulScenes
 from .const import (
-    CONF_TRANSITION_TIME,
-    CONF_DEBOUNCE_TIME,
     DEBOUNCE_MAX,
     DEBOUNCE_MIN,
     DEBOUNCE_STEP,
