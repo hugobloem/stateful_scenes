@@ -14,7 +14,9 @@
         "error": {
             "invalid_yaml": "Ongeldig scènebestand",
             "yaml_not_found": "YAML bestand niet gevonden",
-            "unknown": "Onbekende fout"
+            "unknown": "Onbekende fout",
+            "no_entity_id": "Geen entiteit ID gevonden",
+            "hub_not_found": "Hoofd integratie niet gevonden, configureer eerst Stateful Scenes"
         }
     }
 }
