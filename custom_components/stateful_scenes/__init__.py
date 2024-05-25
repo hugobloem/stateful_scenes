@@ -25,7 +25,7 @@ PLATFORMS: list[Platform] = [
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
-    if entry.data.get("hub", False):
+    if entry.data.get("hub", True):
         hass.data[DOMAIN][entry.entry_id] = Hub(
             hass=hass,
             scene_path=entry.data[CONF_SCENE_PATH],
