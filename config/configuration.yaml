@@ -8,6 +8,7 @@ logger:
   default: info
   logs:
     custom_components.stateful_scenes: debug
+    components.mqtt: error
 
 virtual:
 

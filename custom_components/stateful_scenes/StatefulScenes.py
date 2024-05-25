@@ -6,9 +6,23 @@ import yaml
 import os
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.template import area_id
-from homeassistant.helpers import entity_registry
+from .helpers import (
+    get_name_from_entity_id,
+    get_icon_from_entity_id,
+    get_id_from_entity_id,
+)
 
-from .const import ATTRIBUTES_TO_CHECK
+from .const import (
+    ATTRIBUTES_TO_CHECK,
+    CONF_SCENE_NAME,
+    CONF_SCENE_LEARN,
+    CONF_SCENE_NUMBER_TOLERANCE,
+    CONF_SCENE_ENTITY_ID,
+    CONF_SCENE_ID,
+    CONF_SCENE_AREA,
+    CONF_SCENE_ENTITIES,
+    CONF_SCENE_ICON,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,24 +43,6 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
         if state.attributes.get("id", None) == id:
             return entity_id
     return None
-
-def get_id_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
-    """Get scene id from entity_id."""
-    er = entity_registry.async_get(hass)
-    return entity_registry.async_resolve_entity_id(er, entity_id)
-
-
-def get_name_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
-    """Get scene name from entity_id."""
-    er = entity_registry.async_get(hass)
-    name = er.async_get(entity_id).original_name
-    return name if name is not None else entity_id
-
-def get_icon_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
-    """Get scene icon from entity_id."""
-    er = entity_registry.async_get(hass)
-    icon = er.async_get(entity_id).icon
-    return icon if icon is not None else None
 
 
 class Hub:
@@ -76,28 +72,33 @@ class Hub:
         self.number_tolerance = number_tolerance
         self.hass = hass
         self.scenes = []
+        self.scene_confs = []
 
-        scene_confs = self.load_scenes()
-        for scene_conf in scene_confs:
-            if not self.validate_scene(scene_conf):
-                continue
-            self.scenes.append(
-                Scene(
-                    self.hass,
-                    self.extract_scene_configuration(scene_conf),
-                    self.number_tolerance,
+        if self.scene_path:
+            scene_confs = self.load_scenes()
+            for scene_conf in scene_confs:
+                if not self.validate_scene(scene_conf):
+                    continue
+                self.scenes.append(
+                    Scene(
+                        self.hass,
+                        self.extract_scene_configuration(scene_conf),
+                    )
                 )
-            )
+                self.scene_confs.append(self.extract_scene_configuration(scene_conf))
 
-        for entity_id, conf in external_scenes.items():
-            scene_conf = self.prepare_external_scene(entity_id, conf["entities"])
-            self.scenes.append(
-                Scene(
-                    self.hass,
-                    self.extract_scene_configuration(scene_conf),
-                    self.number_tolerance,
+        elif external_scenes:
+            for entity_id, conf in external_scenes.items():
+                scene_conf = self.prepare_external_scene(entity_id, conf["entities"])
+                self.scenes.append(
+                    Scene(
+                        self.hass,
+                        self.extract_scene_configuration(scene_conf),
+                    )
                 )
-            )
+                self.scene_confs.append(self.extract_scene_configuration(scene_conf))
+        else:
+            raise StatefulScenesYamlNotFound("No scenes file specified.")
 
     def load_scenes(self) -> list:
         """Load scenes from yaml file."""
@@ -135,15 +136,21 @@ class Hub:
         """
 
         if "entities" not in scene_conf:
-            raise StatefulScenesYamlInvalid("Scene is missing entities: " + scene_conf["name"])
+            raise StatefulScenesYamlInvalid(
+                "Scene is missing entities: " + scene_conf["name"]
+            )
 
         if "id" not in scene_conf:
-            raise StatefulScenesYamlInvalid("Scene is missing id: " + scene_conf["name"])
+            raise StatefulScenesYamlInvalid(
+                "Scene is missing id: " + scene_conf["name"]
+            )
 
         for entity_id, scene_attributes in scene_conf["entities"].items():
             if "state" not in scene_attributes:
                 raise StatefulScenesYamlInvalid(
-                    "Scene is missing state for entity " + entity_id + scene_conf["name"]
+                    "Scene is missing state for entity "
+                    + entity_id
+                    + scene_conf["name"]
                 )
 
         return True
@@ -177,11 +184,16 @@ class Hub:
         return {
             "name": scene_conf["name"],
             "id": scene_conf.get("id", entity_id),
-            "icon": scene_conf.get("icon", get_icon_from_entity_id(self.hass, entity_id)),
+            "icon": scene_conf.get(
+                "icon", get_icon_from_entity_id(self.hass, entity_id)
+            ),
             "entity_id": entity_id,
             "area": area_id(self.hass, entity_id),
             "learn": scene_conf.get("learn", False),
             "entities": entities,
+            "number_tolerance": scene_conf.get(
+                "number_tolerance", self.number_tolerance
+            ),
         }
 
     def prepare_external_scene(self, entity_id, entities) -> dict:
@@ -200,19 +212,17 @@ class Hub:
 class Scene:
     """State scene class."""
 
-    def __init__(
-        self, hass: HomeAssistant, scene_conf: dict, number_tolerance=1
-    ) -> None:
+    def __init__(self, hass: HomeAssistant, scene_conf: dict) -> None:
         """Initialize."""
         self.hass = hass
-        self.number_tolerance = number_tolerance
-        self.name = scene_conf["name"]
-        self._entity_id = scene_conf["entity_id"]
-        self._id = scene_conf["id"]
-        self.area_id = scene_conf["area"]
-        self.learn = scene_conf["learn"]
-        self.entities = scene_conf["entities"]
-        self.icon = scene_conf["icon"]
+        self.name = scene_conf[CONF_SCENE_NAME]
+        self._entity_id = scene_conf[CONF_SCENE_ENTITY_ID]
+        self.number_tolerance = scene_conf[CONF_SCENE_NUMBER_TOLERANCE]
+        self._id = scene_conf[CONF_SCENE_ID]
+        self.area_id = scene_conf[CONF_SCENE_AREA]
+        self.learn = scene_conf[CONF_SCENE_LEARN]
+        self.entities = scene_conf[CONF_SCENE_ENTITIES]
+        self.icon = scene_conf[CONF_SCENE_ICON]
         self._is_on = None
         self._transition_time = None
         self._restore_on_deactivate = True
@@ -243,7 +253,9 @@ class Scene:
     def turn_on(self):
         """Turn on the scene."""
         if self._entity_id is None:
-            raise StatefulScenesYamlInvalid("Cannot find entity_id for: " + self.name + self._entity_id)
+            raise StatefulScenesYamlInvalid(
+                "Cannot find entity_id for: " + self.name + self._entity_id
+            )
 
         self.hass.services.call(
             domain="scene",

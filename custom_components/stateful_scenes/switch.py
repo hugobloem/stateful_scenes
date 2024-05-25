@@ -1,4 +1,5 @@
 """Platform for light integration."""
+
 from __future__ import annotations
 
 import logging
@@ -19,7 +20,6 @@ from . import StatefulScenes
 from .const import (
     CONF_NUMBER_TOLERANCE,
     CONF_SCENE_PATH,
-    CONF_RESTORE_STATES_ON_DEACTIVATE,
     DEFAULT_NUMBER_TOLERANCE,
     DEFAULT_SCENE_PATH,
     DEVICE_INFO_MANUFACTURER,
@@ -69,16 +69,21 @@ async def async_setup_entry(
         data,
         entry,
     )
-    hub = data[entry.entry_id]
+    entities = []
+    if isinstance(data[entry.entry_id], StatefulScenes.Hub):
+        hub = data[entry.entry_id]
+        for scene in hub.scenes:
+            entities += [StatefulSceneSwitch(scene), RestoreOnDeactivate(scene)]
 
-    switches = []
-    switches += [StatefulSceneSwitch(scene) for scene in hub.scenes]
-    switches += [
-        RestoreOnDeactivate(scene, entry.data.get(CONF_RESTORE_STATES_ON_DEACTIVATE))
-        for scene in hub.scenes
-    ]
+    elif isinstance(data[entry.entry_id], StatefulScenes.Scene):
+        scene = data[entry.entry_id]
+        entities += [StatefulSceneSwitch(scene), RestoreOnDeactivate(scene)]
 
-    add_entities(switches)
+    else:
+        _LOGGER.error("Invalid entity type for %s", entry.entry_id)
+        return False
+
+    add_entities(entities)
 
     return True
 
@@ -167,15 +172,13 @@ class RestoreOnDeactivate(SwitchEntity):
     _attr_should_poll = True
     _attr_assumed_state = True
 
-    def __init__(
-        self, scene: StatefulScenes, restore_on_deactivate: bool = False
-    ) -> None:
+    def __init__(self, scene: StatefulScenes) -> None:
         """Initialize."""
         self._scene = scene
         self._name = f"{scene.name} Restore On Deactivate"
         self._attr_unique_id = f"{scene.id}_restore_on_deactivate"
-        self._scene.set_restore_on_deactivate(restore_on_deactivate)
-        self._is_on = restore_on_deactivate
+        self._scene.set_restore_on_deactivate(scene.restore_on_deactivate)
+        self._is_on = scene.restore_on_deactivate
 
     @property
     def name(self) -> str:

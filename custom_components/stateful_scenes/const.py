@@ -2,13 +2,13 @@
 
 DOMAIN = "stateful_scenes"
 
+# Hub configuration
 CONF_SCENE_PATH = "scene_path"
 CONF_NUMBER_TOLERANCE = "number_tolerance"
 CONF_RESTORE_STATES_ON_DEACTIVATE = "restore_states_on_deactivate"
 CONF_TRANSITION_TIME = "transition_time"
 CONF_EXTERNAL_SCENES = "external_scenes"
 CONF_EXTERNAL_SCENE_ACTIVE = "external_scene_active"
-CONF_EXTERNAL_SCENES_LIST = "external_scenes_list"
 
 DEFAULT_SCENE_PATH = "scenes.yaml"
 DEFAULT_NUMBER_TOLERANCE = 1
@@ -16,6 +16,17 @@ DEFAULT_RESTORE_STATES_ON_DEACTIVATE = False
 DEFAULT_TRANSITION_TIME = 1
 DEFAULT_EXTERNAL_SCENES = []
 DEFAULT_EXTERNAL_SCENE_ACTIVE = False
+
+# Scene configuration
+CONF_SCENE_NAME = "name"
+CONF_SCENE_LEARN = "learn"
+CONF_SCENE_NUMBER_TOLERANCE = "number_tolerance"
+CONF_SCENE_ENTITY_ID = "entity_id"
+CONF_SCENE_ID = "id"
+CONF_SCENE_AREA = "area"
+CONF_SCENE_ENTITIES = "entities"
+CONF_SCENE_ICON = "icon"
+
 
 TOLERANCE_MIN = 0
 TOLERANCE_MAX = 10
@@ -30,7 +41,7 @@ ATTRIBUTES_TO_CHECK = {
     "cover": {"current_position"},
     "media_player": {"volume_level", "source"},
     "fan": {"direction", "oscillating", "percentage"},
-    "climate": {"system_mode", "temperature"}
+    "climate": {"system_mode", "temperature"},
 }
 
 DEVICE_INFO_MANUFACTURER = "Stateful Scenes"

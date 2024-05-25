@@ -13,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import StatefulScenes
-from .const import CONF_TRANSITION_TIME, DEVICE_INFO_MANUFACTURER, DOMAIN
+from .const import DEVICE_INFO_MANUFACTURER, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,15 +30,22 @@ async def async_setup_entry(
         data,
         entry,
     )
-    hub = data[entry.entry_id]
 
-    stateful_scene_number = [
-        TransitionNumber(scene, entry.data.get(CONF_TRANSITION_TIME))
-        for scene in hub.scenes
-    ]
+    entities = []
+    if isinstance(data[entry.entry_id], StatefulScenes.Hub):
+        hub = data[entry.entry_id]
+        for scene in hub.scenes:
+            entities.append(TransitionNumber(scene))
 
+    elif isinstance(data[entry.entry_id], StatefulScenes.Scene):
+        scene = data[entry.entry_id]
+        entities.append(TransitionNumber(scene))
 
-    add_entities(stateful_scene_number)
+    else:
+        _LOGGER.error("Invalid entity type for %s", entry.entry_id)
+        return False
+
+    add_entities(entities)
 
     return True
 
@@ -53,19 +60,19 @@ class TransitionNumber(RestoreNumber):
     _attr_name = "Transition Time"
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(self, scene: StatefulScenes.Scene, transition_time=None) -> None:
+    def __init__(self, scene: StatefulScenes.Scene) -> None:
         """Initialize."""
         self._scene = scene
         self._name = f"{scene.name} Transition Time"
         self._attr_unique_id = f"{scene.id}_transition_time"
 
-        if transition_time is not None:
+        if scene.transition_time is not None:
             _LOGGER.debug(
                 "Setting initial transition time for %s to %s",
                 scene.name,
-                transition_time,
+                scene.transition_time,
             )
-            self._scene.set_transition_time(transition_time)
+            self._scene.set_transition_time(scene.transition_time)
 
     @property
     def name(self) -> str:
