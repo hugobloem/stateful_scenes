@@ -11,38 +11,3 @@ logger:
     components.mqtt: error
 
 virtual:
-
-light:
-  - platform: virtual
-    name: 'Light 1'
-    initial_value: 'on'
-    support_brightness: true
-    initial_brightness: 100
-    support_color: true
-    initial_color: [0,255]
-    support_color_temp: true
-    initial_color_temp: 255
-    support_white_value: true
-    initial_white_value: 240
-    initial_availability: true
-  - platform: virtual
-    name: 'Light 2'
-    initial_value: 'on'
-    support_brightness: true
-    initial_brightness: 100
-    support_color: true
-    initial_color: [0,255]
-    support_color_temp: true
-    initial_color_temp: 255
-    support_white_value: true
-    initial_white_value: 240
-    initial_availability: true
-
-fan:
-  - platform: virtual
-    name: Fan 1
-    speed: True
-    speed_count: 5
-    direction: True
-    oscillate: True
-    initial_availability: true
