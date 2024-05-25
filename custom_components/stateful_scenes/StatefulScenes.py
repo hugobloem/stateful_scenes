@@ -279,7 +279,7 @@ class Scene:
     @property
     def debounce_time(self) -> float:
         return self._debounce_time
-    
+
     def set_debounce_time(self, debounce_time: float):
         self._debounce_time = debounce_time or 0.0
 
@@ -313,9 +313,12 @@ class Scene:
             self.schedule_update(True)
 
     def is_interesting_update(self, old_state, new_state):
+        """Check if the state change is interesting."""
+        if old_state is None:
+            return True
         if not self.compare_values(old_state.state, new_state.state):
             return True
-        
+
         if new_state.domain in ATTRIBUTES_TO_CHECK:
             entity_attrs = new_state.attributes
             old_entity_attrs = old_state.attributes
