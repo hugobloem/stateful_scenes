@@ -13,7 +13,15 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import StatefulScenes
-from .const import CONF_TRANSITION_TIME, CONF_DEBOUNCE_TIME, DEBOUNCE_MAX, DEBOUNCE_MIN, DEBOUNCE_STEP, DEVICE_INFO_MANUFACTURER, DOMAIN
+from .const import (
+    CONF_TRANSITION_TIME,
+    CONF_DEBOUNCE_TIME,
+    DEBOUNCE_MAX,
+    DEBOUNCE_MIN,
+    DEBOUNCE_STEP,
+    DEVICE_INFO_MANUFACTURER,
+    DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,8 +45,7 @@ async def async_setup_entry(
         for scene in hub.scenes
     ]
     debounce_entities = [
-        DebounceTime(scene, entry.data.get(CONF_DEBOUNCE_TIME))
-        for scene in hub.scenes
+        DebounceTime(scene, entry.data.get(CONF_DEBOUNCE_TIME)) for scene in hub.scenes
     ]
 
     add_entities(stateful_scene_number + debounce_entities)
@@ -110,7 +117,7 @@ class TransitionNumber(RestoreNumber):
 
 
 class DebounceTime(RestoreNumber):
-    """Time to wait after activating a scene switch until evaluating if the scene is still active"""
+    """Time to wait after activating a scene switch until evaluating if the scene is still active."""
 
     _attr_native_max_value = DEBOUNCE_MAX
     _attr_native_min_value = DEBOUNCE_MIN

@@ -31,6 +31,7 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
             return entity_id
     return None
 
+
 def get_id_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
     """Get scene id from entity_id."""
     er = entity_registry.async_get(hass)
@@ -42,6 +43,7 @@ def get_name_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
     er = entity_registry.async_get(hass)
     name = er.async_get(entity_id).original_name
     return name if name is not None else entity_id
+
 
 def get_icon_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
     """Get scene icon from entity_id."""
@@ -136,15 +138,21 @@ class Hub:
         """
 
         if "entities" not in scene_conf:
-            raise StatefulScenesYamlInvalid("Scene is missing entities: " + scene_conf["name"])
+            raise StatefulScenesYamlInvalid(
+                "Scene is missing entities: " + scene_conf["name"]
+            )
 
         if "id" not in scene_conf:
-            raise StatefulScenesYamlInvalid("Scene is missing id: " + scene_conf["name"])
+            raise StatefulScenesYamlInvalid(
+                "Scene is missing id: " + scene_conf["name"]
+            )
 
         for entity_id, scene_attributes in scene_conf["entities"].items():
             if "state" not in scene_attributes:
                 raise StatefulScenesYamlInvalid(
-                    "Scene is missing state for entity " + entity_id + scene_conf["name"]
+                    "Scene is missing state for entity "
+                    + entity_id
+                    + scene_conf["name"]
                 )
 
         return True
@@ -178,7 +186,9 @@ class Hub:
         return {
             "name": scene_conf["name"],
             "id": scene_conf.get("id", entity_id),
-            "icon": scene_conf.get("icon", get_icon_from_entity_id(self.hass, entity_id)),
+            "icon": scene_conf.get(
+                "icon", get_icon_from_entity_id(self.hass, entity_id)
+            ),
             "entity_id": entity_id,
             "area": area_id(self.hass, entity_id),
             "learn": scene_conf.get("learn", False),
@@ -245,7 +255,9 @@ class Scene:
     def turn_on(self):
         """Turn on the scene."""
         if self._entity_id is None:
-            raise StatefulScenesYamlInvalid("Cannot find entity_id for: " + self.name + self._entity_id)
+            raise StatefulScenesYamlInvalid(
+                "Cannot find entity_id for: " + self.name + self._entity_id
+            )
 
         self.hass.services.call(
             domain="scene",
@@ -278,9 +290,11 @@ class Scene:
 
     @property
     def debounce_time(self) -> float:
+        """Get the debounce time."""
         return self._debounce_time
 
     def set_debounce_time(self, debounce_time: float):
+        """Set the debounce time."""
         self._debounce_time = debounce_time or 0.0
 
     @property
@@ -323,10 +337,7 @@ class Scene:
             entity_attrs = new_state.attributes
             old_entity_attrs = old_state.attributes
             for attribute in ATTRIBUTES_TO_CHECK.get(new_state.domain):
-                if (
-                    attribute not in old_entity_attrs
-                    or attribute not in entity_attrs
-                ):
+                if attribute not in old_entity_attrs or attribute not in entity_attrs:
                     continue
 
                 if not self.compare_values(
