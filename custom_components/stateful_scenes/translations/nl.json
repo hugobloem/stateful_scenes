@@ -8,7 +8,7 @@
                     "number_tolerance": "Afrondingstolerantie",
                     "restore_states_on_deactivate": "Status herstellen bij deactivering",
                     "transition_time": "Transitie tijd",
-                    "enable_discovery": "Ontdekking inschakelen",
+                    "enable_discovery": "Ontdekking inschakelen"
                 }
             }
         },
