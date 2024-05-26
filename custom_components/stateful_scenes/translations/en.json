@@ -16,7 +16,8 @@
                     "number_tolerance": "Rounding tolerance",
                     "restore_states_on_deactivate": "Restore states on deactivation",
                     "transition_time": "Transition time",
-                    "debounce_time": "Debounce time"
+                    "debounce_time": "Debounce time",
+                    "enable_discovery": "Enable discovery"
                 }
             },
             "select_external_scenes": {

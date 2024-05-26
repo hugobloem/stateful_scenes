@@ -9,42 +9,41 @@ from homeassistant import config_entries
 from homeassistant.helpers import selector
 
 from .const import (
-    DOMAIN,
-    CONF_NUMBER_TOLERANCE,
-    CONF_SCENE_PATH,
-    CONF_RESTORE_STATES_ON_DEACTIVATE,
-    CONF_TRANSITION_TIME,
+    CONF_DEBOUNCE_TIME,
+    CONF_ENABLE_DISCOVERY,
     CONF_EXTERNAL_SCENE_ACTIVE,
-    DEFAULT_NUMBER_TOLERANCE,
-    DEFAULT_SCENE_PATH,
-    DEFAULT_RESTORE_STATES_ON_DEACTIVATE,
-    DEFAULT_TRANSITION_TIME,
-    DEFAULT_EXTERNAL_SCENE_ACTIVE,
+    CONF_NUMBER_TOLERANCE,
+    CONF_RESTORE_STATES_ON_DEACTIVATE,
+    CONF_SCENE_ENTITIES,
     CONF_SCENE_ENTITY_ID,
     CONF_SCENE_NAME,
-    CONF_SCENE_ENTITIES,
-)
-
-from .const import (
-    CONF_DEBOUNCE_TIME,
+    CONF_SCENE_PATH,
+    CONF_TRANSITION_TIME,
     DEBOUNCE_MAX,
     DEBOUNCE_MIN,
     DEBOUNCE_STEP,
     DEFAULT_DEBOUNCE_TIME,
-    TOLERANCE_MIN,
+    DEFAULT_ENABLE_DISCOVERY,
+    DEFAULT_EXTERNAL_SCENE_ACTIVE,
+    DEFAULT_NUMBER_TOLERANCE,
+    DEFAULT_RESTORE_STATES_ON_DEACTIVATE,
+    DEFAULT_SCENE_PATH,
+    DEFAULT_TRANSITION_TIME,
+    DOMAIN,
     TOLERANCE_MAX,
+    TOLERANCE_MIN,
     TOLERANCE_STEP,
-    TRANSITION_MIN,
     TRANSITION_MAX,
+    TRANSITION_MIN,
     TRANSITION_STEP,
 )
+from .helpers import get_area_from_entity_id, get_name_from_entity_id
 from .StatefulScenes import (
     Hub,
     Scene,
     StatefulScenesYamlInvalid,
     StatefulScenesYamlNotFound,
 )
-from .helpers import get_name_from_entity_id, get_area_from_entity_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -135,6 +134,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             min=DEBOUNCE_MIN, max=DEBOUNCE_MAX, step=DEBOUNCE_STEP
                         )
                     ),
+                    vol.Optional(
+                        CONF_ENABLE_DISCOVERY, default=DEFAULT_ENABLE_DISCOVERY
+                    ): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
