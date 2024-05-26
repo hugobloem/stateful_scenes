@@ -1,7 +1,7 @@
 {
     "config": {
         "step": {
-            "user": {
+            "configure_internal_scenes": {
                 "description": "Stel het pad naar het scènebestand in (standaard werkt met Home Assistant OS)",
                 "data": {
                     "scene_path": "Scènebestand pad",

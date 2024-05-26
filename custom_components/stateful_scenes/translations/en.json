@@ -2,6 +2,14 @@
     "config": {
         "step": {
             "user": {
+                "description": "Select whether you'd like to configure internal or external scenes.",
+                "menu_options": {
+                    "configure_internal_scenes": "Home Assistant Scenes (do this first)",
+                    "select_external_scenes": "External Scenes"
+                },
+                "title": "Configure Stateful Scenes."
+            },
+            "configure_internal_scenes": {
                 "description": "Set the path to the scene file (default works with Home Assistant OS)",
                 "data": {
                     "scene_path": "Scene path",
