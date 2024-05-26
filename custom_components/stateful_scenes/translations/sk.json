@@ -1,13 +1,14 @@
 {
     "config": {
         "step": {
-            "user": {
+            "configure_internal_scenes": {
                 "description": "Nastavte cestu k súboru scény (predvolene funguje s OS Home Assistant)",
                 "data": {
                     "scene_path": "Cesta scény",
                     "number_tolerance": "Tolerancia zaokrúhľovania",
                     "restore_states_on_deactivate": "Obnovte stavy pri deaktivácii",
-                    "transition_time": "Čas prechodu"
+                    "transition_time": "Čas prechodu",
+                    "enable_discovery": "Povoliť objavovanie"
                 }
             },
             "select_external_scenes": {

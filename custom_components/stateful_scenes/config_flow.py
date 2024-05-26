@@ -9,42 +9,41 @@ from homeassistant import config_entries
 from homeassistant.helpers import selector
 
 from .const import (
-    DOMAIN,
-    CONF_NUMBER_TOLERANCE,
-    CONF_SCENE_PATH,
-    CONF_RESTORE_STATES_ON_DEACTIVATE,
-    CONF_TRANSITION_TIME,
+    CONF_DEBOUNCE_TIME,
+    CONF_ENABLE_DISCOVERY,
     CONF_EXTERNAL_SCENE_ACTIVE,
-    DEFAULT_NUMBER_TOLERANCE,
-    DEFAULT_SCENE_PATH,
-    DEFAULT_RESTORE_STATES_ON_DEACTIVATE,
-    DEFAULT_TRANSITION_TIME,
-    DEFAULT_EXTERNAL_SCENE_ACTIVE,
+    CONF_NUMBER_TOLERANCE,
+    CONF_RESTORE_STATES_ON_DEACTIVATE,
+    CONF_SCENE_ENTITIES,
     CONF_SCENE_ENTITY_ID,
     CONF_SCENE_NAME,
-    CONF_SCENE_ENTITIES,
-)
-
-from .const import (
-    CONF_DEBOUNCE_TIME,
+    CONF_SCENE_PATH,
+    CONF_TRANSITION_TIME,
     DEBOUNCE_MAX,
     DEBOUNCE_MIN,
     DEBOUNCE_STEP,
     DEFAULT_DEBOUNCE_TIME,
-    TOLERANCE_MIN,
+    DEFAULT_ENABLE_DISCOVERY,
+    DEFAULT_EXTERNAL_SCENE_ACTIVE,
+    DEFAULT_NUMBER_TOLERANCE,
+    DEFAULT_RESTORE_STATES_ON_DEACTIVATE,
+    DEFAULT_SCENE_PATH,
+    DEFAULT_TRANSITION_TIME,
+    DOMAIN,
     TOLERANCE_MAX,
+    TOLERANCE_MIN,
     TOLERANCE_STEP,
-    TRANSITION_MIN,
     TRANSITION_MAX,
+    TRANSITION_MIN,
     TRANSITION_STEP,
 )
+from .helpers import get_area_from_entity_id, get_name_from_entity_id
 from .StatefulScenes import (
     Hub,
     Scene,
     StatefulScenesYamlInvalid,
     StatefulScenesYamlNotFound,
 )
-from .helpers import get_name_from_entity_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,7 +58,17 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.configuration = {}
         self.curr_external_scene = 0
 
-    async def async_step_user(
+    async def async_step_user(self, user_input: dict | None = None) -> dict:
+        """Handle a flow initialized by the user."""
+        return self.async_show_menu(
+            step_id="user",
+            menu_options=[
+                "configure_internal_scenes",
+                "select_external_scenes",
+            ],
+        )
+
+    async def async_step_configure_internal_scenes(
         self,
         user_input: dict | None = None,
     ) -> config_entries.FlowResult:
@@ -91,7 +100,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
 
         return self.async_show_form(
-            step_id="user",
+            step_id="configure_internal_scenes",
             last_step=True,
             data_schema=vol.Schema(
                 {
@@ -125,6 +134,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             min=DEBOUNCE_MIN, max=DEBOUNCE_MAX, step=DEBOUNCE_STEP
                         )
                     ),
+                    vol.Optional(
+                        CONF_ENABLE_DISCOVERY, default=DEFAULT_ENABLE_DISCOVERY
+                    ): selector.BooleanSelector(),
                 }
             ),
             errors=errors,
@@ -142,12 +154,63 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._abort_if_unique_id_configured()
 
         self.context["title_placeholders"] = {
-            "name": get_name_from_entity_id(
+            "name": f"{get_name_from_entity_id(
                 self.hass, discovery_info[CONF_SCENE_ENTITY_ID]
-            ),
+            )} - {get_area_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID])}"
         }
 
         return await self.async_step_configure_external_scene_entities()
+
+    async def async_step_select_external_scenes(self, user_input=None):
+        """Handle a flow step for selecting external scenes."""
+        errors = {}
+
+        if user_input is not None:
+            self.configuration[CONF_SCENE_ENTITY_ID] = user_input[CONF_SCENE_ENTITY_ID]
+
+            unique_id = f"stateful_{self.configuration[CONF_SCENE_ENTITY_ID]}"
+            await self.async_set_unique_id(unique_id, raise_on_progress=False)
+
+            return await self.async_step_configure_external_scene_entities()
+
+        try:
+            hub = [
+                entry
+                for entry in self.hass.data[DOMAIN].values()
+                if isinstance(entry, Hub)
+            ][0]
+        except IndexError as err:
+            _LOGGER.error(err)
+            errors["base"] = "hub_not_found"
+
+        excluded_entities = [scene._entity_id for scene in hub.scenes]
+        excluded_entities += [
+            entry.unique_id.replace("stateful_", "")
+            for entry in self.hass.config_entries.async_entries(DOMAIN)
+            if entry.unique_id
+        ]
+        all_entities = self.hass.states.async_entity_ids("scene")
+
+        if all(entity in excluded_entities for entity in all_entities):
+            errors["base"] = "no_configurable_scenes"
+
+        # If user_input is None or there are errors, show the form again
+        return self.async_show_form(
+            step_id="select_external_scenes",
+            data_schema=vol.Schema(
+                {
+                    # Define the fields for your second flow here
+                    vol.Optional(CONF_SCENE_ENTITY_ID): selector.EntitySelector(
+                        {
+                            "filter": {"domain": "scene"},
+                            "multiple": False,
+                            "exclude_entities": excluded_entities,
+                        }
+                    ),
+                }
+            ),
+            errors=errors,
+        )
 
     async def async_step_configure_external_scene_entities(self, user_input=None):
         """Handle a flow step for configuring external scenes."""

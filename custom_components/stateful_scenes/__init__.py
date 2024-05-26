@@ -11,7 +11,7 @@ from .const import (
     DOMAIN,
     CONF_SCENE_PATH,
     CONF_NUMBER_TOLERANCE,
-    CONF_EXTERNAL_SCENES,
+    CONF_ENABLE_DISCOVERY,
 )
 from .discovery import DiscoveryManager
 
@@ -33,14 +33,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass=hass,
             scene_path=entry.data[CONF_SCENE_PATH],
             number_tolerance=entry.data[CONF_NUMBER_TOLERANCE],
-            external_scenes=entry.data.get(CONF_EXTERNAL_SCENES, {}),
         )
 
     else:
         hass.data[DOMAIN][entry.entry_id] = Scene(hass, entry.data)
 
-    discovery_manager = DiscoveryManager(hass, entry)
-    await discovery_manager.start_discovery()
+    if is_hub and entry.data.get(CONF_ENABLE_DISCOVERY, False):
+        discovery_manager = DiscoveryManager(hass, entry)
+        await discovery_manager.start_discovery()
 
     for platform in PLATFORMS:
         hass.async_create_task(
