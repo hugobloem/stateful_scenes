@@ -53,7 +53,6 @@ class Hub:
         self,
         hass: HomeAssistant,
         scene_path: str,
-        external_scenes: dict = {},
         number_tolerance: int = 1,
     ) -> None:
         """Initialize the Hub class.
@@ -88,16 +87,6 @@ class Hub:
                 )
                 self.scene_confs.append(self.extract_scene_configuration(scene_conf))
 
-        elif external_scenes:
-            for entity_id, conf in external_scenes.items():
-                scene_conf = self.prepare_external_scene(entity_id, conf["entities"])
-                self.scenes.append(
-                    Scene(
-                        self.hass,
-                        self.extract_scene_configuration(scene_conf),
-                    )
-                )
-                self.scene_confs.append(self.extract_scene_configuration(scene_conf))
         else:
             raise StatefulScenesYamlNotFound("No scenes file specified.")
 

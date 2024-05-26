@@ -11,7 +11,6 @@ from .const import (
     DOMAIN,
     CONF_SCENE_PATH,
     CONF_NUMBER_TOLERANCE,
-    CONF_EXTERNAL_SCENES,
 )
 from .discovery import DiscoveryManager
 
@@ -33,7 +32,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass=hass,
             scene_path=entry.data[CONF_SCENE_PATH],
             number_tolerance=entry.data[CONF_NUMBER_TOLERANCE],
-            external_scenes=entry.data.get(CONF_EXTERNAL_SCENES, {}),
         )
 
     else:
