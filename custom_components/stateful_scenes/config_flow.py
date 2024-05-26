@@ -135,6 +135,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by discovery."""
         self.configuration = discovery_info
+        self.configuration["hub"] = False
 
         unique_id = f"stateful_{discovery_info[CONF_SCENE_ENTITY_ID]}"
         await self.async_set_unique_id(unique_id)

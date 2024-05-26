@@ -45,6 +45,7 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
             return entity_id
     return None
 
+
 class Hub:
     """State scene class."""
 
@@ -224,7 +225,7 @@ class Scene:
         self.entities = scene_conf[CONF_SCENE_ENTITIES]
         self.icon = scene_conf[CONF_SCENE_ICON]
         self._is_on = None
-        self._transition_time = None
+        self._transition_time = 0.0
         self._restore_on_deactivate = True
         self._debounce_time: float = 0
 
@@ -320,7 +321,7 @@ class Scene:
 
     async def update_callback(self, entity_id, old_state, new_state):
         """Update the scene when a tracked entity changes state."""
-        self.store_entity_state(entity_id, self.states[entity_id])
+        self.store_entity_state(entity_id, old_state)
         if self.is_interesting_update(old_state, new_state):
             await asyncio.sleep(self.debounce_time)
             self.schedule_update(True)

@@ -1,6 +1,8 @@
 # Home Assistant configuration
 config/*
 !config/configuration.yaml
+!config/virtual.yaml
+!config/scenes.yaml
 custom_components/virtual
 
 # Byte-compiled / optimized / DLL files

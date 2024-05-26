@@ -1,0 +1,45 @@
+version: 1
+devices:
+  +Fan 1:
+  - platform: fan
+    name: +Fan 1
+    speed: true
+    speed_count: 5
+    direction: true
+    oscillate: true
+    initial_availability: true
+  +Light 1:
+  - platform: light
+    name: +Light 1
+    initial_value: 'on'
+    support_brightness: true
+    initial_brightness: 100
+    support_color: true
+    initial_color:
+    - 0
+    - 255
+    support_color_temp: true
+    initial_color_temp: 255
+    support_white_value: true
+    initial_white_value: 240
+    initial_availability: true
+  +Light 2:
+  - platform: light
+    name: +Light 2
+    initial_value: 'on'
+    support_brightness: true
+    initial_brightness: 100
+    support_color: true
+    initial_color:
+    - 0
+    - 255
+    support_color_temp: true
+    initial_color_temp: 255
+    support_white_value: true
+    initial_white_value: 240
+    initial_availability: true
+  +Switch 1:
+  - platform: switch
+    name: +Switch 1
+    initial_value: 'off'
+    initial_availability: true
