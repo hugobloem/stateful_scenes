@@ -44,7 +44,7 @@ from .StatefulScenes import (
     StatefulScenesYamlInvalid,
     StatefulScenesYamlNotFound,
 )
-from .helpers import get_name_from_entity_id
+from .helpers import get_name_from_entity_id, get_area_from_entity_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -142,9 +142,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._abort_if_unique_id_configured()
 
         self.context["title_placeholders"] = {
-            "name": get_name_from_entity_id(
+            "name": f"{get_name_from_entity_id(
                 self.hass, discovery_info[CONF_SCENE_ENTITY_ID]
-            ),
+            )} - {get_area_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID])}"
         }
 
         return await self.async_step_configure_external_scene_entities()
