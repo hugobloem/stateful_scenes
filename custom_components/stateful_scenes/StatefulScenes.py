@@ -321,7 +321,7 @@ class Scene:
 
     async def update_callback(self, entity_id, old_state, new_state):
         """Update the scene when a tracked entity changes state."""
-        self.store_entity_state(entity_id, self.states[entity_id])
+        self.store_entity_state(entity_id, old_state)
         if self.is_interesting_update(old_state, new_state):
             await asyncio.sleep(self.debounce_time)
             self.schedule_update(True)
