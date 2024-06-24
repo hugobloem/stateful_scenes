@@ -1,6 +1,14 @@
 {
     "config": {
         "step": {
+            "user": {
+                "description": "Vyberte, či chcete nakonfigurovať interné alebo externé scény.",
+                "menu_options": {
+                    "configure_internal_scenes": "Home Assistant scény (spraviť ako prvé)",
+                    "select_external_scenes": "Externé scény"
+                },
+                "title": "Konfigurácia stavových scén."
+            },
             "configure_internal_scenes": {
                 "description": "Nastavte cestu k súboru scény (predvolene funguje s OS Home Assistant)",
                 "data": {
@@ -8,6 +16,7 @@
                     "number_tolerance": "Tolerancia zaokrúhľovania",
                     "restore_states_on_deactivate": "Obnovte stavy pri deaktivácii",
                     "transition_time": "Čas prechodu",
+                    "debounce_time": "Čas odskoku",
                     "enable_discovery": "Povoliť objavovanie"
                 }
             },
@@ -35,7 +44,9 @@
         "error": {
             "invalid_yaml": "Neplatný súbor scén",
             "yaml_not_found": "Zadaný YAML sa nenašiel",
-            "unknown": "Vyskytla sa neznáma chyba"
+            "unknown": "Vyskytla sa neznáma chyba",
+            "no_entity_id": "ID entity nenájdená",
+            "hub_not_found": "Hlavná položka sa nenašla, najskôr nakonfigurujte stavové scény"
         }
     }
 }
