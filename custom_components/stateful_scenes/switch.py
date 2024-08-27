@@ -13,7 +13,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_state_change
+from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from . import StatefulScenes
@@ -156,7 +156,7 @@ class StatefulSceneSwitch(SwitchEntity):
     def register_callback(self) -> None:
         """Register callback to update hass when state changes."""
         self._scene.register_callback(
-            state_change_func=async_track_state_change,
+            state_change_func=async_track_state_change_event,
             schedule_update_func=self.schedule_update_ha_state,
         )
 
