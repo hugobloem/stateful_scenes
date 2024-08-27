@@ -5,7 +5,7 @@ import logging
 
 import yaml
 import os
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, Event, EventStateChangedData
 from homeassistant.helpers.template import area_id
 from .helpers import (
     get_name_from_entity_id,
@@ -308,8 +308,12 @@ class Scene:
             self.callback()
             self.callback = None
 
-    async def update_callback(self, entity_id, old_state, new_state):
+    async def update_callback(self, event: Event[EventStateChangedData]):
         """Update the scene when a tracked entity changes state."""
+        entity_id = event.data.get("entity_id")
+        new_state = event.data.get("new_state")
+        old_state = event.data.get("old_state")
+
         self.store_entity_state(entity_id, old_state)
         if self.is_interesting_update(old_state, new_state):
             await asyncio.sleep(self.debounce_time)
