@@ -7,7 +7,7 @@ import logging
 # Import the device class from the component that you want to support
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchEntity
+from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchEntity, SwitchDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, STATE_ON
 from homeassistant.core import HomeAssistant
@@ -96,11 +96,12 @@ class StatefulSceneSwitch(SwitchEntity):
     _attr_has_entity_name = True
     _attr_name = "Stateful Scene"
     _attr_should_poll = False
+    _attr_is_on: bool | None = None
+    _attr_entity_category = None
 
     def __init__(self, scene) -> None:
         """Initialize an AwesomeLight."""
         self._scene = scene
-        self._is_on = None
         self._name = "Stateful Scene"
         self._icon = scene.icon
         self._attr_unique_id = f"stateful_{scene.id}"
@@ -110,7 +111,7 @@ class StatefulSceneSwitch(SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if light is on."""
-        return self._is_on
+        return self._attr_is_on
 
     @property
     def name(self) -> str:
@@ -132,6 +133,10 @@ class StatefulSceneSwitch(SwitchEntity):
             manufacturer=DEVICE_INFO_MANUFACTURER,
         )
 
+    @property
+    def device_class(self) -> str | None:
+        return SwitchDeviceClass.SWITCH
+
     def turn_on(self, **kwargs) -> None:
         """Instruct the light to turn on.
 
@@ -139,12 +144,12 @@ class StatefulSceneSwitch(SwitchEntity):
         brightness control.
         """
         self._scene.turn_on()
-        self._is_on = self._scene.is_on
+        self._attr_is_on = self._scene.is_on
 
     def turn_off(self, **kwargs) -> None:
         """Instruct the light to turn off."""
         self._scene.turn_off()
-        self._is_on = self._scene.is_on
+        self._attr_is_on = self._scene.is_on
 
     def update(self) -> None:
         """Fetch new state data for this light.
@@ -152,7 +157,7 @@ class StatefulSceneSwitch(SwitchEntity):
         This is the only method that should fetch new data for Home Assistant.
         """
         self._scene.check_all_states()
-        self._is_on = self._scene.is_on
+        self._attr_is_on = self._scene.is_on
 
     def register_callback(self) -> None:
         """Register callback to update hass when state changes."""
