@@ -219,6 +219,7 @@ class Scene:
         self._debounce_time: float = 0
 
         self.callback = None
+        self.callback_funcs = {}
         self.schedule_update = None
         self.states = {entity_id: False for entity_id in self.entities}
         self.restore_states = {entity_id: None for entity_id in self.entities}
@@ -295,8 +296,12 @@ class Scene:
         """Set the restore on deactivate flag."""
         self._restore_on_deactivate = restore_on_deactivate
 
-    def register_callback(self, state_change_func, schedule_update_func):
+    def register_callback(self):
         """Register callback."""
+        schedule_update_func = self.callback_funcs.get("schedule_update_func", None)
+        state_change_func = self.callback_funcs.get("state_change_func", None)
+        if schedule_update_func is None or state_change_func is None:
+            raise ValueError("No callback functions provided for scene.")
         self.schedule_update = schedule_update_func
         self.callback = state_change_func(
             self.hass, self.entities.keys(), self.update_callback

@@ -105,6 +105,10 @@ class StatefulSceneSwitch(SwitchEntity):
         self._icon = scene.icon
         self._attr_unique_id = f"stateful_{scene.id}"
 
+        self._scene.callback_funcs = {
+            "state_change_func":async_track_state_change_event,
+            "schedule_update_func":self.schedule_update_ha_state
+            }
         self.register_callback()
 
     @property
@@ -156,10 +160,7 @@ class StatefulSceneSwitch(SwitchEntity):
 
     def register_callback(self) -> None:
         """Register callback to update hass when state changes."""
-        self._scene.register_callback(
-            state_change_func=async_track_state_change_event,
-            schedule_update_func=self.schedule_update_ha_state,
-        )
+        self._scene.register_callback()
 
     def unregister_callback(self) -> None:
         """Unregister callback."""
