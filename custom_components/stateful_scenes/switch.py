@@ -92,7 +92,7 @@ async def async_setup_entry(
 class StatefulSceneSwitch(SwitchEntity):
     """Representation of an Awesome Light."""
 
-    _attr_assumed_state = True
+    _attr_assumed_state = False
     _attr_has_entity_name = True
     _attr_name = "Stateful Scene"
     _attr_should_poll = False
