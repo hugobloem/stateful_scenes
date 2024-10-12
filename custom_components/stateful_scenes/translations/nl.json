@@ -1,6 +1,14 @@
 {
     "config": {
         "step": {
+            "user": {
+                "description": "Selecteer of u interne of externe scènes wilt configureren.",
+                "menu_options": {
+                    "configure_internal_scenes": "Home Assistant Scènes (doe dit eerst)",
+                    "select_external_scenes": "EXPERIMENTEEL: Externe Scènes"
+                },
+                "title": "Configureer Stateful Scenes."
+            },
             "configure_internal_scenes": {
                 "description": "Stel het pad naar het scènebestand in (standaard werkt met Home Assistant OS)",
                 "data": {
@@ -9,6 +17,26 @@
                     "restore_states_on_deactivate": "Status herstellen bij deactivering",
                     "transition_time": "Transitie tijd",
                     "enable_discovery": "Ontdekking inschakelen"
+                }
+            },
+            "select_external_scenes": {
+                "description": "EXPERIMENTEEL!\nSelecteer de scènes die niet in het configuratiebestand staan en die u wilt configureren. Deze scènes moeten worden geleerd door Stateful Scenes.",
+                "data": {
+                    "external_scenes": "Externe scènes"
+                }
+            },
+            "configure_external_scene_entities": {
+                "description": "Selecteer entiteiten die behoren tot {scene_name}.\nLet op: bij het indienen wordt de scène ingeschakeld!",
+                "data": {
+                    "scene_name": "Scène naam",
+                    "scene_id": "Scène ID",
+                    "scene_entities": "Scène entiteiten"
+                }
+            },
+            "learn_external_scene": {
+                "description": "Bevestig of de scène is geactiveerd.",
+                "data": {
+                    "external_scene_active": "Geactiveerd?"
                 }
             }
         },

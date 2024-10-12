@@ -5,7 +5,7 @@
                 "description": "Select whether you'd like to configure internal or external scenes.",
                 "menu_options": {
                     "configure_internal_scenes": "Home Assistant Scenes (do this first)",
-                    "select_external_scenes": "External Scenes"
+                    "select_external_scenes": "EXPERIMENTAL: External Scenes"
                 },
                 "title": "Configure Stateful Scenes."
             },
@@ -21,7 +21,7 @@
                 }
             },
             "select_external_scenes": {
-                "description": "Select the scenes not in the config file that you'd like to configure. These scenes will need to be learned by Stateful Scenes.",
+                "description": "EXPERIMENTAL!\nSelect the scenes not in the config file that you'd like to configure. These scenes will need to be learned by Stateful Scenes.",
                 "data": {
                     "external_scenes": "External scenes"
                 }
