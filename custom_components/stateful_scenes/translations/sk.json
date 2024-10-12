@@ -5,7 +5,7 @@
                 "description": "Vyberte, či chcete nakonfigurovať interné alebo externé scény.",
                 "menu_options": {
                     "configure_internal_scenes": "Home Assistant scény (spraviť ako prvé)",
-                    "select_external_scenes": "Externé scény"
+                    "select_external_scenes": "EXPERIMENTALNY: Externé scény"
                 },
                 "title": "Konfigurácia stavových scén."
             },
@@ -21,7 +21,7 @@
                 }
             },
             "select_external_scenes": {
-                "description": "Vyberte scény, ktoré nie sú v konfiguračnom súbore, ktoré chcete nakonfigurovať. Tieto scény sa budú musieť naučiť pomocou Stateful Scenes.",
+                "description": "EXPERIMENTALNY!\nVyberte scény, ktoré nie sú v konfiguračnom súbore, ktoré chcete nakonfigurovať. Tieto scény sa budú musieť naučiť pomocou Stateful Scenes.",
                 "data": {
                     "external_scenes": "Vonkajšie scény"
                 }
