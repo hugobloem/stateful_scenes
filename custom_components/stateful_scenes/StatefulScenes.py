@@ -6,7 +6,7 @@ import logging
 import yaml
 import os
 from homeassistant.core import HomeAssistant, Event, EventStateChangedData
-from homeassistant.helpers.template import area_id
+from homeassistant.helpers.template import area_id, area_name
 from .helpers import (
     get_name_from_entity_id,
     get_icon_from_entity_id,
@@ -178,7 +178,7 @@ class Hub:
                 "icon", get_icon_from_entity_id(self.hass, entity_id)
             ),
             "entity_id": entity_id,
-            "area": area_id(self.hass, entity_id),
+            "area": area_name(self.hass, area_id(self.hass, entity_id)),
             "learn": scene_conf.get("learn", False),
             "entities": entities,
             "number_tolerance": scene_conf.get(
@@ -193,7 +193,7 @@ class Hub:
             "id": get_id_from_entity_id(self.hass, entity_id),
             "icon": get_icon_from_entity_id(self.hass, entity_id),
             "entity_id": entity_id,
-            "area": area_id(self.hass, entity_id),
+            "area": area_name(self.hass, area_id(self.hass, entity_id)),
             "learn": True,
             "entities": entities,
         }
