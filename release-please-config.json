@@ -1,0 +1,37 @@
+{
+    "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+    "release-type": "python",
+    "packages": {
+        ".": {
+            "release-type": "python",
+            "changelog-sections": [
+                {"section": "🚀 Features", "type": "feat", "hidden": false},
+                {"section": "🐛 Bugfixes", "type": "fix", "hidden": false},
+                {"section": "📝 Documentation", "type": "docs", "hidden": false},
+                {"section": "⬆️ Dependency updates", "type": "deps", "hidden": false},
+                {"section": "🔨 Code Refactoring", "type": "refactor", "hidden": false},
+                {"section": "🧪 Tests", "type": "test", "hidden": false},
+                {"section": "⏪️ Reverts", "type": "revert", "hidden": false},
+                {"section": "⚡️ Performance Improvements", "type": "perf", "hidden": false},
+                {"section": "🏗️ Maintenance", "type": "build", "hidden": false},
+                {"section": "🎨 Styles", "type": "style", "hidden": false},
+                {"section": "🔧 Miscellaneous Chores", "type": "chore", "hidden": false},
+                {"section": "👷 Continuous Integration", "type": "ci", "hidden": false}
+            ]
+        }
+    },
+    "changelog-sections": [
+        {"section": "🚀 Features", "type": "feat", "hidden": false},
+        {"section": "🐛 Bugfixes", "type": "fix", "hidden": false},
+        {"section": "📝 Documentation", "type": "docs", "hidden": false},
+        {"section": "⬆️ Dependency updates", "type": "deps", "hidden": false},
+        {"section": "🔨 Code Refactoring", "type": "refactor", "hidden": false},
+        {"section": "🧪 Tests", "type": "test", "hidden": false},
+        {"section": "⏪️ Reverts", "type": "revert", "hidden": false},
+        {"section": "⚡️ Performance Improvements", "type": "perf", "hidden": false},
+        {"section": "🏗️ Maintenance", "type": "build", "hidden": false},
+        {"section": "🎨 Styles", "type": "style", "hidden": false},
+        {"section": "🔧 Miscellaneous Chores", "type": "chore", "hidden": false},
+        {"section": "👷 Continuous Integration", "type": "ci", "hidden": false}
+    ]
+}
