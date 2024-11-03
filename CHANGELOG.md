@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.2](https://github.com/hugobloem/stateful_scenes/compare/v1.3.1...v1.3.2) (2024-11-03)
+
+
+### 🐛 Bugfixes
+
+* **scene:** do not restore if already off ([#127](https://github.com/hugobloem/stateful_scenes/issues/127)) ([4166e78](https://github.com/hugobloem/stateful_scenes/commit/4166e789d52b7bdea17db58452980e358b40fb07))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update pip requirement ([#125](https://github.com/hugobloem/stateful_scenes/issues/125)) ([fac5978](https://github.com/hugobloem/stateful_scenes/commit/fac597855d1cf24bb0686ddf5a2cef59d25b7070))
+
+
+### 👷 Continuous Integration
+
+* **release:** auto update manifest.json ([#128](https://github.com/hugobloem/stateful_scenes/issues/128)) ([8547d54](https://github.com/hugobloem/stateful_scenes/commit/8547d54ac20416df4a77eeba96aff55f82da7803))
+* **release:** fix jsonpath ([#129](https://github.com/hugobloem/stateful_scenes/issues/129)) ([8c14432](https://github.com/hugobloem/stateful_scenes/commit/8c1443259076ff7fb06d2c86f48b9da9290c4b72))
+
 ## [1.3.1](https://github.com/hugobloem/stateful_scenes/compare/1.3.0...v1.3.1) (2024-10-18)
 
 
