@@ -259,6 +259,9 @@ class Scene:
 
     def turn_off(self):
         """Turn off all entities in the scene."""
+        if not self._is_on:  # already off
+            return
+
         if self.restore_on_deactivate:
             self.restore()
         else:
@@ -267,6 +270,7 @@ class Scene:
                 service="turn_off",
                 target={"entity_id": list(self.entities.keys())},
             )
+
         self._is_on = False
 
     @property
