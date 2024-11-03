@@ -2,5 +2,11 @@
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true
-    }
+    },
+    "python.testing.pytestArgs": [
+        "tests",
+        "--asyncio-mode=auto"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }

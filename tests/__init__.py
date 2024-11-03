@@ -1,0 +1,1 @@
+"""Tests for stateful_scenes integration."""
