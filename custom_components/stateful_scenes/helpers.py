@@ -20,8 +20,8 @@ def get_name_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
 def get_icon_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
     """Get scene icon from entity_id."""
     er = entity_registry.async_get(hass)
-    icon = er.async_get(entity_id).icon
-    return icon if icon is not None else None
+    entity_id = er.async_get(entity_id)
+    return entity_id.icon if entity_id is not None else None
 
 
 def get_area_from_entity_id(hass: HomeAssistant, entity_id: str) -> str:
