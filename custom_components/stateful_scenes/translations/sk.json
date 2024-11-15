@@ -17,7 +17,8 @@
                     "restore_states_on_deactivate": "Obnovte stavy pri deaktivácii",
                     "transition_time": "Čas prechodu",
                     "debounce_time": "Čas odskoku",
-                    "enable_discovery": "Povoliť objavovanie"
+                    "enable_discovery": "Povoliť objavovanie",
+                    "ignore_unavailable": "Ignorovať entity v nedostupnom stave"
                 }
             },
             "select_external_scenes": {
