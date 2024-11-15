@@ -17,6 +17,7 @@
                     "restore_states_on_deactivate": "Restore states on deactivation",
                     "transition_time": "Transition time",
                     "debounce_time": "Debounce time",
+                    "ignore_unavailable": "Ignore entities in unavailable state",
                     "enable_discovery": "Enable discovery"
                 }
             },
