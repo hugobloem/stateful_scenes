@@ -12,6 +12,7 @@ from .const import (
     CONF_DEBOUNCE_TIME,
     CONF_ENABLE_DISCOVERY,
     CONF_EXTERNAL_SCENE_ACTIVE,
+    CONF_IGNORE_UNAVAILABLE,
     CONF_NUMBER_TOLERANCE,
     CONF_RESTORE_STATES_ON_DEACTIVATE,
     CONF_SCENE_ENTITIES,
@@ -25,6 +26,7 @@ from .const import (
     DEFAULT_DEBOUNCE_TIME,
     DEFAULT_ENABLE_DISCOVERY,
     DEFAULT_EXTERNAL_SCENE_ACTIVE,
+    DEFAULT_IGNORE_UNAVAILABLE,
     DEFAULT_NUMBER_TOLERANCE,
     DEFAULT_RESTORE_STATES_ON_DEACTIVATE,
     DEFAULT_SCENE_PATH,
@@ -134,6 +136,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             min=DEBOUNCE_MIN, max=DEBOUNCE_MAX, step=DEBOUNCE_STEP
                         )
                     ),
+                    vol.Optional(
+                        CONF_IGNORE_UNAVAILABLE, default=DEFAULT_IGNORE_UNAVAILABLE
+                    ): selector.BooleanSelector(),
                     vol.Optional(
                         CONF_ENABLE_DISCOVERY, default=DEFAULT_ENABLE_DISCOVERY
                     ): selector.BooleanSelector(),
