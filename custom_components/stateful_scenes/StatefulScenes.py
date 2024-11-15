@@ -2,27 +2,27 @@
 
 import asyncio
 import logging
+import os
 
 import yaml
-import os
-from homeassistant.core import HomeAssistant, Event, EventStateChangedData
+from homeassistant.core import Event, EventStateChangedData, HomeAssistant
 from homeassistant.helpers.template import area_id, area_name
-from .helpers import (
-    get_name_from_entity_id,
-    get_icon_from_entity_id,
-    get_id_from_entity_id,
-)
 
 from .const import (
     ATTRIBUTES_TO_CHECK,
-    CONF_SCENE_NAME,
-    CONF_SCENE_LEARN,
-    CONF_SCENE_NUMBER_TOLERANCE,
-    CONF_SCENE_ENTITY_ID,
-    CONF_SCENE_ID,
     CONF_SCENE_AREA,
     CONF_SCENE_ENTITIES,
+    CONF_SCENE_ENTITY_ID,
     CONF_SCENE_ICON,
+    CONF_SCENE_ID,
+    CONF_SCENE_LEARN,
+    CONF_SCENE_NAME,
+    CONF_SCENE_NUMBER_TOLERANCE,
+)
+from .helpers import (
+    get_icon_from_entity_id,
+    get_id_from_entity_id,
+    get_name_from_entity_id,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -217,6 +217,7 @@ class Scene:
         self._transition_time = 0.0
         self._restore_on_deactivate = True
         self._debounce_time: float = 0
+        self._ignore_unavailable = False
 
         self.callback = None
         self.callback_funcs = {}
@@ -300,6 +301,15 @@ class Scene:
         """Set the restore on deactivate flag."""
         self._restore_on_deactivate = restore_on_deactivate
 
+    @property
+    def ignore_unavailable(self) -> bool:
+        """Get the ignore unavailable flag."""
+        return self._ignore_unavailable
+
+    def set_ignore_unavailable(self, ignore_unavailable):
+        """Set the ignore unavailable flag."""
+        self._ignore_unavailable = ignore_unavailable
+
     def register_callback(self):
         """Register callback."""
         schedule_update_func = self.callback_funcs.get("schedule_update_func", None)
@@ -354,6 +364,9 @@ class Scene:
             _LOGGER.warning(f"Entity not found: {entity_id}")
             return False
 
+        if self.ignore_unavailable and new_state.state == "unavailable":
+            return None
+
         # Check state
         if not self.compare_values(self.entities[entity_id]["state"], new_state.state):
             _LOGGER.debug(
@@ -394,11 +407,22 @@ class Scene:
         return True
 
     def check_all_states(self):
-        """Check the state of the scene."""
+        """Check the state of the scene.
+
+        If all entities are in the desired state, the scene is on. If any entity is not
+        in the desired state, the scene is off. Unavaiblable entities are ignored, but
+        if all entities are unavailable, the scene is off.
+        """
         for entity_id in self.entities:
             state = self.hass.states.get(entity_id)
             self.states[entity_id] = self.check_state(entity_id, state)
-        self._is_on = all(self.states.values())
+
+        states = [state for state in self.states.values() if state is not None]
+
+        if not states:
+            self._is_on = False
+
+        self._is_on = all(states)
 
     def store_entity_state(self, entity_id, state):
         """Store the state of an entity."""

@@ -74,11 +74,19 @@ async def async_setup_entry(
     if isinstance(data[entry.entry_id], StatefulScenes.Hub):
         hub = data[entry.entry_id]
         for scene in hub.scenes:
-            entities += [StatefulSceneSwitch(scene), RestoreOnDeactivate(scene)]
+            entities += [
+                StatefulSceneSwitch(scene),
+                RestoreOnDeactivate(scene),
+                IgnoreUnavailable(scene),
+            ]
 
     elif isinstance(data[entry.entry_id], StatefulScenes.Scene):
         scene = data[entry.entry_id]
-        entities += [StatefulSceneSwitch(scene), RestoreOnDeactivate(scene)]
+        entities += [
+            StatefulSceneSwitch(scene),
+            RestoreOnDeactivate(scene),
+            IgnoreUnavailable(scene),
+        ]
 
     else:
         _LOGGER.error("Invalid entity type for %s", entry.entry_id)
@@ -106,9 +114,9 @@ class StatefulSceneSwitch(SwitchEntity):
         self._attr_unique_id = f"stateful_{scene.id}"
 
         self._scene.callback_funcs = {
-            "state_change_func":async_track_state_change_event,
-            "schedule_update_func":self.schedule_update_ha_state
-            }
+            "state_change_func": async_track_state_change_event,
+            "schedule_update_func": self.schedule_update_ha_state,
+        }
         self.register_callback()
 
     @property
@@ -173,7 +181,7 @@ class RestoreOnDeactivate(SwitchEntity, RestoreEntity):
     _attr_name = "Restore On Deactivate"
     _attr_entity_category = EntityCategory.CONFIG
     _attr_should_poll = True
-    _attr_assumed_state = True
+    _attr_assumed_state = False
 
     def __init__(self, scene: StatefulScenes.Scene) -> None:
         """Initialize."""
@@ -182,6 +190,7 @@ class RestoreOnDeactivate(SwitchEntity, RestoreEntity):
         self._attr_unique_id = f"{scene.id}_restore_on_deactivate"
         self._scene.set_restore_on_deactivate(scene.restore_on_deactivate)
         self._is_on = scene.restore_on_deactivate
+        self._is_on = None
 
     @property
     def name(self) -> str:
@@ -230,4 +239,70 @@ class RestoreOnDeactivate(SwitchEntity, RestoreEntity):
         if not state:
             return
         self._scene.set_restore_on_deactivate(state.state == STATE_ON)
+        self._is_on = state.state == STATE_ON
+
+
+class IgnoreUnavailable(SwitchEntity, RestoreEntity):
+    """Switch entity to ignore unavailable entities."""
+
+    _attr_name = "Ignore unavailable entities"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_should_poll = True
+    _attr_assumed_state = False
+
+    def __init__(self, scene: StatefulScenes.Scene) -> None:
+        """Initialize."""
+        self._scene = scene
+        self._name = f"{scene.name} Ignore Unavailable"
+        self._attr_unique_id = f"{scene.id}_ignore_unavailable"
+        self._scene.set_ignore_unavailable(scene.ignore_unavailable)
+        self._is_on = scene.ignore_unavailable
+
+    @property
+    def name(self) -> str:
+        """Return the display name of this light."""
+        return self._name
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(self._scene.id,)},
+            name=self._scene.name,
+            manufacturer=DEVICE_INFO_MANUFACTURER,
+            suggested_area=self._scene.area_id,
+        )
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if light is on."""
+        return self._is_on
+
+    def turn_on(self, **kwargs) -> None:
+        """Instruct the light to turn on.
+
+        You can skip the brightness part if your light does not support
+        brightness control.
+        """
+        self._scene.set_ignore_unavailable(True)
+        self._is_on = self._scene.restore_on_deactivate
+
+    def turn_off(self, **kwargs) -> None:
+        """Instruct the light to turn off."""
+        self._scene.set_ignore_unavailable(False)
+        self._is_on = self._scene.restore_on_deactivate
+
+    def update(self) -> None:
+        """Fetch new state data for this light.
+
+        This is the only method that should fetch new data for Home Assistant.
+        """
+        self._is_on = self._scene.ignore_unavailable
+
+    async def async_added_to_hass(self):
+        """Handle entity which will be added."""
+        state = await self.async_get_last_state()
+        if not state:
+            return
+        self._scene.set_ignore_unavailable(state.state == STATE_ON)
         self._is_on = state.state == STATE_ON
