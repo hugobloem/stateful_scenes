@@ -53,3 +53,11 @@ ATTRIBUTES_TO_CHECK = {
 }
 
 DEVICE_INFO_MANUFACTURER = "Stateful Scenes"
+
+
+class StatefulScenesYamlNotFound(Exception):
+    """Raised when specified yaml is not found."""
+
+
+class StatefulScenesYamlInvalid(Exception):
+    """Raised when specified yaml is invalid."""
