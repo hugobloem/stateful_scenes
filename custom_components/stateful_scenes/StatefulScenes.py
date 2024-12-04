@@ -100,7 +100,7 @@ class Hub:
             raise StatefulScenesYamlNotFound("No scenes file " + self.scene_path)
 
         try:
-            async with aiofiles.open(self.scene_path, mode="r", encoding="utf-8") as f:
+            async with aiofiles.open(self.scene_path, encoding="utf-8") as f:
                 scenes_confs = yaml.load(await f.read(), Loader=yaml.FullLoader)
         except OSError as err:
             raise StatefulScenesYamlInvalid(
