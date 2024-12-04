@@ -2,23 +2,24 @@
 
 from __future__ import annotations
 
+import os
+
+import aiofiles
+import yaml
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-import aiofiles
-import yaml
-import os
 
-from .StatefulScenes import Hub, Scene
 from .const import (
-    DOMAIN,
-    CONF_SCENE_PATH,
-    CONF_NUMBER_TOLERANCE,
     CONF_ENABLE_DISCOVERY,
-    StatefulScenesYamlNotFound,
+    CONF_NUMBER_TOLERANCE,
+    CONF_SCENE_PATH,
+    DOMAIN,
     StatefulScenesYamlInvalid,
+    StatefulScenesYamlNotFound,
 )
 from .discovery import DiscoveryManager
+from .StatefulScenes import Hub, Scene
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,

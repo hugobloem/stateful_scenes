@@ -17,7 +17,6 @@ from .const import (
     CONF_SCENE_NAME,
     CONF_SCENE_NUMBER_TOLERANCE,
     StatefulScenesYamlInvalid,
-    StatefulScenesYamlNotFound,
 )
 from .helpers import (
     get_icon_from_entity_id,
@@ -51,7 +50,7 @@ class Hub:
 
         Args:
             hass (HomeAssistant): Home Assistant instance
-            scene_path (str): Path to the yaml file containing the scenes
+            scene_confs (str): Scene configurations from the scene file
             external_scenes (list): List of external scenes
             number_tolerance (int): Tolerance for comparing numbers
 
