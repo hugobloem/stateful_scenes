@@ -215,6 +215,10 @@ class Scene:
                 "Cannot find entity_id for: " + self.name + self._entity_id
             )
 
+        # Store the current state of the entities
+        for entity_id in self.entities:
+            self.store_entity_state(entity_id)
+
         self.hass.services.call(
             domain="scene",
             service="turn_on",
@@ -398,8 +402,13 @@ class Scene:
 
         self._is_on = all(states)
 
-    def store_entity_state(self, entity_id, state):
-        """Store the state of an entity."""
+    def store_entity_state(self, entity_id, state=None):
+        """Store the state of an entity.
+
+        If the state is not provided, the current state of the entity is used.
+        """
+        if state is None:
+            state = self.hass.states.get(entity_id)
         self.restore_states[entity_id] = state
 
     def restore(self):
@@ -408,7 +417,15 @@ class Scene:
         for entity_id, state in self.restore_states.items():
             if state is None:
                 continue
+
+            # restore state
             entities[entity_id] = {"state": state.state}
+
+            # do not restore attributes if the entity is off
+            if state.state == "off":
+                continue
+
+            # restore attributes
             if state.domain in ATTRIBUTES_TO_CHECK:
                 entity_attrs = state.attributes
                 for attribute in ATTRIBUTES_TO_CHECK.get(state.domain):
