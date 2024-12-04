@@ -4,6 +4,7 @@ import asyncio
 import logging
 import os
 
+import aiofiles
 import yaml
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
 from homeassistant.helpers.template import area_id, area_name
@@ -99,8 +100,8 @@ class Hub:
             raise StatefulScenesYamlNotFound("No scenes file " + self.scene_path)
 
         try:
-            with open(self.scene_path, encoding="utf-8") as f:
-                scenes_confs = yaml.load(f, Loader=yaml.FullLoader)
+            async with aiofiles.open(self.scene_path, encoding="utf-8") as f:
+                scenes_confs = yaml.load(await f.read(), Loader=yaml.FullLoader)
         except OSError as err:
             raise StatefulScenesYamlInvalid(
                 "No scenes found in " + self.scene_path
