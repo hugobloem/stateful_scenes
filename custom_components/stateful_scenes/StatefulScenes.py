@@ -2,10 +2,7 @@
 
 import asyncio
 import logging
-import os
 
-import aiofiles
-import yaml
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
 from homeassistant.helpers.template import area_id, area_name
 
@@ -19,6 +16,7 @@ from .const import (
     CONF_SCENE_LEARN,
     CONF_SCENE_NAME,
     CONF_SCENE_NUMBER_TOLERANCE,
+    StatefulScenesYamlInvalid,
 )
 from .helpers import (
     get_icon_from_entity_id,
@@ -27,14 +25,6 @@ from .helpers import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class StatefulScenesYamlNotFound(Exception):
-    """Raised when specified yaml is not found."""
-
-
-class StatefulScenesYamlInvalid(Exception):
-    """Raised when specified yaml is invalid."""
 
 
 def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
@@ -53,14 +43,14 @@ class Hub:
     def __init__(
         self,
         hass: HomeAssistant,
-        scene_path: str,
+        scene_confs: dict,
         number_tolerance: int = 1,
     ) -> None:
         """Initialize the Hub class.
 
         Args:
             hass (HomeAssistant): Home Assistant instance
-            scene_path (str): Path to the yaml file containing the scenes
+            scene_confs (str): Scene configurations from the scene file
             external_scenes (list): List of external scenes
             number_tolerance (int): Tolerance for comparing numbers
 
@@ -69,48 +59,22 @@ class Hub:
             StatefulScenesYamlInvalid: If the yaml file is invalid
 
         """
-        self.scene_path = scene_path
+        self.scene_confs = scene_confs
         self.number_tolerance = number_tolerance
         self.hass = hass
         self.scenes = []
         self.scene_confs = []
 
-        if self.scene_path:
-            scene_confs = self.load_scenes()
-            for scene_conf in scene_confs:
-                if not self.validate_scene(scene_conf):
-                    continue
-                self.scenes.append(
-                    Scene(
-                        self.hass,
-                        self.extract_scene_configuration(scene_conf),
-                    )
+        for scene_conf in scene_confs:
+            if not self.validate_scene(scene_conf):
+                continue
+            self.scenes.append(
+                Scene(
+                    self.hass,
+                    self.extract_scene_configuration(scene_conf),
                 )
-                self.scene_confs.append(self.extract_scene_configuration(scene_conf))
-
-        else:
-            raise StatefulScenesYamlNotFound("No scenes file specified.")
-
-    def load_scenes(self) -> list:
-        """Load scenes from yaml file."""
-        # check if file exists
-        if self.scene_path is None:
-            raise StatefulScenesYamlNotFound("Scenes file not specified.")
-        if not os.path.exists(self.scene_path):
-            raise StatefulScenesYamlNotFound("No scenes file " + self.scene_path)
-
-        try:
-            async with aiofiles.open(self.scene_path, encoding="utf-8") as f:
-                scenes_confs = yaml.load(await f.read(), Loader=yaml.FullLoader)
-        except OSError as err:
-            raise StatefulScenesYamlInvalid(
-                "No scenes found in " + self.scene_path
-            ) from err
-
-        if not scenes_confs or not isinstance(scenes_confs, list):
-            raise StatefulScenesYamlInvalid("No scenes found in " + self.scene_path)
-
-        return scenes_confs
+            )
+            self.scene_confs.append(self.extract_scene_configuration(scene_conf))
 
     def validate_scene(self, scene_conf: dict) -> None:
         """Validate scene configuration.
