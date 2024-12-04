@@ -8,5 +8,8 @@
   "documentation": "https://github.com/hugobloem/stateful_scenes",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/hugobloem/stateful_scenes/issues",
-  "version": "1.4.0"
+  "version": "1.4.0",
+  "requirements": [
+    "aiofiles"
+  ]
 }
