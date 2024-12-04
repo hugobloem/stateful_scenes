@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.5.0](https://github.com/hugobloem/stateful_scenes/compare/v1.4.0...v1.5.0) (2024-12-04)
+
+
+### 🚀 Features
+
+* set rounding tolerance per scene ([#143](https://github.com/hugobloem/stateful_scenes/issues/143)) ([dd4448f](https://github.com/hugobloem/stateful_scenes/commit/dd4448f98c6d3483603f431394245c73d18476d9))
+
+
+### 🐛 Bugfixes
+
+* do not restore attributes when the state to restore is "off" ([#145](https://github.com/hugobloem/stateful_scenes/issues/145)) ([3567fd1](https://github.com/hugobloem/stateful_scenes/commit/3567fd196aa8aadf9747159c8afcdd3cb9611cd6))
+* force store entity state when turning on ([#145](https://github.com/hugobloem/stateful_scenes/issues/145)) ([3567fd1](https://github.com/hugobloem/stateful_scenes/commit/3567fd196aa8aadf9747159c8afcdd3cb9611cd6))
+* move imports source in config_flow.py ([e7c8af8](https://github.com/hugobloem/stateful_scenes/commit/e7c8af8becdaaff0491c3c5374694031b1c0059f))
+* non-blocking file reading for scenes configuration ([#141](https://github.com/hugobloem/stateful_scenes/issues/141)) ([07e09d5](https://github.com/hugobloem/stateful_scenes/commit/07e09d55e05bf707ccf2b6d26b5209a737ea573a))
+
+
+### 🔨 Code Refactoring
+
+* scene file importing improvements ([#144](https://github.com/hugobloem/stateful_scenes/issues/144)) ([e1ee6d4](https://github.com/hugobloem/stateful_scenes/commit/e1ee6d48bc3abf453a943d4be2a6b3f33ce23b33))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump astral-sh/setup-uv from 3 to 4 ([#138](https://github.com/hugobloem/stateful_scenes/issues/138)) ([8d152ad](https://github.com/hugobloem/stateful_scenes/commit/8d152ad26970f90de3f2f37ae008ec53d61421fa))
+
 ## [1.4.0](https://github.com/hugobloem/stateful_scenes/compare/v1.3.2...v1.4.0) (2024-11-15)
 
 
