@@ -208,7 +208,7 @@ class Scene:
         self.hass = hass
         self.name = scene_conf[CONF_SCENE_NAME]
         self._entity_id = scene_conf[CONF_SCENE_ENTITY_ID]
-        self.number_tolerance = scene_conf[CONF_SCENE_NUMBER_TOLERANCE]
+        self._number_tolerance = scene_conf[CONF_SCENE_NUMBER_TOLERANCE]
         self._id = scene_conf[CONF_SCENE_ID]
         self.area_id = scene_conf[CONF_SCENE_AREA]
         self.learn = scene_conf[CONF_SCENE_LEARN]
@@ -274,6 +274,15 @@ class Scene:
             )
 
         self._is_on = False
+
+    @property
+    def number_tolerance(self) -> int:
+        """Get the number tolerance."""
+        return self._number_tolerance
+
+    def set_number_tolerance(self, number_tolerance):
+        """Set the number tolerance."""
+        self._number_tolerance = number_tolerance
 
     @property
     def transition_time(self) -> float:
