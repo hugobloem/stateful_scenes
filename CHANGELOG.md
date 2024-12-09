@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/hugobloem/stateful_scenes/compare/v1.5.0...v1.5.1) (2024-12-09)
+
+
+### 🐛 Bugfixes
+
+* update Hub signature in config flow - fixes [#147](https://github.com/hugobloem/stateful_scenes/issues/147) ([#148](https://github.com/hugobloem/stateful_scenes/issues/148)) ([1b768a8](https://github.com/hugobloem/stateful_scenes/commit/1b768a8bd0da7192ea2a12b2ed989afa6bdebd93))
+
 ## [1.5.0](https://github.com/hugobloem/stateful_scenes/compare/v1.4.0...v1.5.0) (2024-12-04)
 
 
