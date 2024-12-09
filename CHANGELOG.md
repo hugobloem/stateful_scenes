@@ -2,6 +2,7 @@
 
 ## [1.5.1](https://github.com/hugobloem/stateful_scenes/compare/v1.5.0...v1.5.1) (2024-12-09)
 
+This release fixes a bug that prevented new installations to be set up.
 
 ### 🐛 Bugfixes
 
