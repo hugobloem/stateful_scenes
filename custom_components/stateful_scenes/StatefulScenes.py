@@ -179,6 +179,7 @@ class Scene:
         self.entities = scene_conf[CONF_SCENE_ENTITIES]
         self.icon = scene_conf[CONF_SCENE_ICON]
         self._is_on = None
+        self._persist_state = False
         self._transition_time = 0.0
         self._restore_on_deactivate = True
         self._debounce_time: float = 0
@@ -242,6 +243,15 @@ class Scene:
             )
 
         self._is_on = False
+
+    @property
+    def persist_state(self) -> bool:
+        """Return the persist state flag."""
+        return self._persist_state
+
+    def set_persist_state(self, value: bool) -> None:
+        """Set the persist state flag."""
+        self._persist_state = value
 
     @property
     def number_tolerance(self) -> int:
