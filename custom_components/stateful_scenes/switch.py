@@ -78,6 +78,7 @@ async def async_setup_entry(
                 StatefulSceneSwitch(scene),
                 RestoreOnDeactivate(scene),
                 IgnoreUnavailable(scene),
+                PersistStateAcrossRestarts(scene),
             ]
 
     elif isinstance(data[entry.entry_id], StatefulScenes.Scene):
@@ -86,6 +87,7 @@ async def async_setup_entry(
             StatefulSceneSwitch(scene),
             RestoreOnDeactivate(scene),
             IgnoreUnavailable(scene),
+            PersistStateAcrossRestarts(scene),
         ]
 
     else:
@@ -93,12 +95,66 @@ async def async_setup_entry(
         return False
 
     add_entities(entities)
-
     return True
 
+class PersistStateAcrossRestarts(SwitchEntity, RestoreEntity):
+    """Switch to enable or disable state persistence across restarts."""
 
-class StatefulSceneSwitch(SwitchEntity):
-    """Representation of an Awesome Light."""
+    _attr_name = "Persist State Across Restarts"
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_should_poll = True
+    _attr_assumed_state = False
+
+    def __init__(self, scene: StatefulScenes.Scene) -> None:
+        """Initialize."""
+        self._scene = scene
+        self._name = f"{scene.name} Persist State"
+        self._attr_unique_id = f"{scene.id}_persist_state"
+
+    @property
+    def name(self) -> str:
+        """Return the display name of this switch."""
+        return self._name
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(self._scene.id,)},
+            name=self._scene.name,
+            manufacturer=DEVICE_INFO_MANUFACTURER,
+            suggested_area=self._scene.area_id,
+        )
+
+    @property
+    def is_on(self) -> bool:
+        """Return true if persistence is enabled."""
+        return self._scene.persist_state
+
+    def turn_on(self, **kwargs) -> None:
+        """Enable state persistence."""
+        if not self._scene.persist_state:
+            self._scene.set_persist_state(True)
+            self.schedule_update_ha_state()
+
+    def turn_off(self, **kwargs) -> None:
+        """Disable state persistence."""
+        if self._scene.persist_state:
+            self._scene.set_persist_state(False)
+            self.schedule_update_ha_state()
+
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last state."""
+        await super().async_added_to_hass()
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state == STATE_ON:
+            self._scene.set_persist_state(True)
+        self.schedule_update_ha_state()
+
+
+class StatefulSceneSwitch(SwitchEntity, RestoreEntity):
+    """Representation of a Stateful Scene switch."""
 
     _attr_assumed_state = False
     _attr_has_entity_name = True
@@ -106,7 +162,7 @@ class StatefulSceneSwitch(SwitchEntity):
     _attr_should_poll = False
 
     def __init__(self, scene) -> None:
-        """Initialize an AwesomeLight."""
+        """Initialize."""
         self._scene = scene
         self._is_on = None
         self._name = "Stateful Scene"
@@ -121,17 +177,17 @@ class StatefulSceneSwitch(SwitchEntity):
 
     @property
     def is_on(self) -> bool:
-        """Return true if light is on."""
+        """Return true if the scene is active."""
         return self._is_on
 
     @property
     def name(self) -> str:
-        """Return the display name of this light."""
+        """Return the display name of this scene."""
         return self._name
 
     @property
     def icon(self) -> str | None:
-        """Return the icon of this light."""
+        """Return the icon of this scene."""
         return self._icon
 
     @property
@@ -145,21 +201,35 @@ class StatefulSceneSwitch(SwitchEntity):
         )
 
     def turn_on(self, **kwargs) -> None:
-        """Instruct the light to turn on.
-
-        You can skip the brightness part if your light does not support
-        brightness control.
-        """
+        """Turn on the scene."""
         self._scene.turn_on()
-        self._is_on = self._scene.is_on
+        self._is_on = True
+        if self._scene.persist_state:
+            self.schedule_update_ha_state()  # Save state if persistence is enabled
 
     def turn_off(self, **kwargs) -> None:
-        """Instruct the light to turn off."""
+        """Turn off the scene."""
         self._scene.turn_off()
-        self._is_on = self._scene.is_on
+        self._is_on = False
+        if self._scene.persist_state:
+            self.schedule_update_ha_state()  # Save state if persistence is enabled
+
+    async def async_added_to_hass(self) -> None:
+        """Restore last state."""
+        await super().async_added_to_hass()
+        if self._scene.persist_state:
+            last_state = await self.async_get_last_state()
+            if last_state and last_state.state == STATE_ON:
+                self._scene.turn_on()
+                self._is_on = True
+            else:
+                self._is_on = False
+        else:
+            self._is_on = False
+        self.schedule_update_ha_state()
 
     def update(self) -> None:
-        """Fetch new state data for this light.
+        """Fetch new state data for this switch.
 
         This is the only method that should fetch new data for Home Assistant.
         """
