@@ -217,21 +217,21 @@ class StatefulSceneSwitch(SwitchEntity, RestoreEntity):
     async def async_added_to_hass(self) -> None:
         """Restore last state."""
         await super().async_added_to_hass()
-        # Restore the last state from Home Assistant
-        last_state = await self.async_get_last_state()
-        
-        if last_state:
-            if last_state.state == STATE_ON:
+        try:
+            last_state = await self.async_get_last_state()
+            if last_state and last_state.state == STATE_ON:
                 self._is_on = True
-                if self._scene.persist_state:  # Restore the scene if persistence is enabled
-                    self._scene.turn_on()
             else:
                 self._is_on = False
-                if self._scene.persist_state:  # Restore the scene if persistence is enabled
-                    self._scene.turn_off()
-        else:
-            # Default to off if no previous state is available
+
+            # Use a delayed state restoration to avoid initialization conflicts
+            if self._scene.persist_state:
+                self.hass.loop.call_later(1, self._scene.turn_on if self._is_on else self._scene.turn_off)
+        except Exception as e:
+            _LOGGER.error("Error restoring state for %s: %s", self.name, str(e))
             self._is_on = False
+
+        self.schedule_update_ha_state()
 
         self.schedule_update_ha_state()
 
