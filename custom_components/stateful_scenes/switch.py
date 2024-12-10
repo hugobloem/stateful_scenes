@@ -158,6 +158,17 @@ class StatefulSceneSwitch(SwitchEntity):
         self._scene.turn_off()
         self._is_on = self._scene.is_on
 
+    async def async_added_to_hass(self) -> None:
+        """Validate and set the actual scene state on restart."""
+        await super().async_added_to_hass()
+
+        def _validate_scene_state():
+            self._scene.check_all_states()
+            self._is_on = self._scene.is_on
+            self.schedule_update_ha_state()
+
+        self.hass.loop.call_later(1, _validate_scene_state)
+
     def update(self) -> None:
         """Fetch new state data for this light.
 
