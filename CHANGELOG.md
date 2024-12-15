@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.2](https://github.com/hugobloem/stateful_scenes/compare/v1.5.1...v1.5.2) (2024-12-15)
+
+
+### 🐛 Bugfixes
+
+* Actual Scene State on Restart (fixes [#1146](https://github.com/hugobloem/stateful_scenes/issues/1146)), thanks to [@sayam93](https://github.com/sayam93) ([d6551c7](https://github.com/hugobloem/stateful_scenes/commit/d6551c70a91b8c811eb7545f34ae9dbcdbd16467))
+
 ## [1.5.1](https://github.com/hugobloem/stateful_scenes/compare/v1.5.0...v1.5.1) (2024-12-09)
 
 This release fixes a bug that prevented new installations to be set up.
