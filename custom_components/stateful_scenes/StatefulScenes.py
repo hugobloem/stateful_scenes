@@ -3,6 +3,8 @@
 import asyncio
 import logging
 
+from typing import Any
+
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
 from homeassistant.helpers.template import area_id, area_name
 
@@ -16,6 +18,7 @@ from .const import (
     CONF_SCENE_LEARN,
     CONF_SCENE_NAME,
     CONF_SCENE_NUMBER_TOLERANCE,
+    DEFAULT_OFF_SCENE_ENTITY_ID,
     StatefulScenesYamlInvalid,
 )
 from .helpers import (
@@ -43,15 +46,14 @@ class Hub:
     def __init__(
         self,
         hass: HomeAssistant,
-        scene_confs: dict,
+        scene_confs: dict[str, Any],
         number_tolerance: int = 1,
     ) -> None:
         """Initialize the Hub class.
 
         Args:
             hass (HomeAssistant): Home Assistant instance
-            scene_confs (str): Scene configurations from the scene file
-            external_scenes (list): List of external scenes
+            scene_confs (dict[str, Any]): Scene configurations from the scene file
             number_tolerance (int): Tolerance for comparing numbers
 
         Raises:
@@ -59,11 +61,10 @@ class Hub:
             StatefulScenesYamlInvalid: If the yaml file is invalid
 
         """
-        self.scene_confs = scene_confs
         self.number_tolerance = number_tolerance
         self.hass = hass
-        self.scenes = []
-        self.scene_confs = []
+        self.scenes: list[Scene] = []
+        self.scene_confs: list[dict[str, Any]] = []
 
         for scene_conf in scene_confs:
             if not self.validate_scene(scene_conf):
@@ -163,6 +164,12 @@ class Hub:
             "entities": entities,
         }
 
+    def get_available_scenes(self) -> list[str]:
+        """Get list of all scenes from the hub."""
+        scene_entities: list[str] = [scene.entity_id for scene in self.scenes]
+        return scene_entities
+
+
 
 class Scene:
     """State scene class."""
@@ -170,19 +177,20 @@ class Scene:
     def __init__(self, hass: HomeAssistant, scene_conf: dict) -> None:
         """Initialize."""
         self.hass = hass
-        self.name = scene_conf[CONF_SCENE_NAME]
-        self._entity_id = scene_conf[CONF_SCENE_ENTITY_ID]
+        self.name: str = scene_conf[CONF_SCENE_NAME]
+        self._entity_id: str = scene_conf[CONF_SCENE_ENTITY_ID]
         self._number_tolerance = scene_conf[CONF_SCENE_NUMBER_TOLERANCE]
         self._id = scene_conf[CONF_SCENE_ID]
-        self.area_id = scene_conf[CONF_SCENE_AREA]
+        self._area_id: str = scene_conf[CONF_SCENE_AREA]
         self.learn = scene_conf[CONF_SCENE_LEARN]
         self.entities = scene_conf[CONF_SCENE_ENTITIES]
         self.icon = scene_conf[CONF_SCENE_ICON]
         self._is_on = None
-        self._transition_time = 0.0
+        self._transition_time: float = 0.0
         self._restore_on_deactivate = True
         self._debounce_time: float = 0
         self._ignore_unavailable = False
+        self._off_scene_entity_id = None
 
         self.callback = None
         self.callback_funcs = {}
@@ -197,16 +205,26 @@ class Scene:
             self._entity_id = get_entity_id_from_id(self.hass, self._id)
 
     @property
+    def entity_id(self) -> str:
+        """Return the entity_id of the scene."""
+        return self._entity_id
+
+    @property
     def is_on(self):
         """Return true if the scene is on."""
         return self._is_on
 
     @property
-    def id(self):
+    def id(self) -> str:
         """Return the id of the scene."""
         if self.learn:
             return self._id + "_learned"  # avoids non-unique id during testing
         return self._id
+
+    @property
+    def area_id(self) -> str:
+        """Return the area_id of the scene."""
+        return self._area_id
 
     def turn_on(self):
         """Turn on the scene."""
@@ -227,12 +245,30 @@ class Scene:
         )
         self._is_on = True
 
+    @property
+    def off_scene_entity_id(self) -> str | None:
+        """Return the entity_id of the off scene."""
+        return self._off_scene_entity_id
+
+    def set_off_scene(self, entity_id: str | None) -> None:
+        """Set the off scene entity_id."""
+        self._off_scene_entity_id = entity_id
+        if entity_id:
+            self._restore_on_deactivate = False
+
     def turn_off(self):
         """Turn off all entities in the scene."""
         if not self._is_on:  # already off
             return
 
-        if self.restore_on_deactivate:
+        if self._off_scene_entity_id:
+            self.hass.services.call(
+                domain="scene",
+                service="turn_on",
+                target={"entity_id": self._off_scene_entity_id},
+                service_data={"transition": self._transition_time},
+            )
+        elif self.restore_on_deactivate:
             self.restore()
         else:
             self.hass.services.call(
