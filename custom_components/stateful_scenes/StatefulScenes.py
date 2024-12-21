@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-
 from typing import Any
 
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
@@ -18,7 +17,7 @@ from .const import (
     CONF_SCENE_LEARN,
     CONF_SCENE_NAME,
     CONF_SCENE_NUMBER_TOLERANCE,
-    DEFAULT_OFF_SCENE_ENTITY_ID,
+    SceneStateAttributes,
     StatefulScenesYamlInvalid,
 )
 from .helpers import (
@@ -38,137 +37,6 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
         if state.attributes.get("id", None) == id:
             return entity_id
     return None
-
-
-class Hub:
-    """State scene class."""
-
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        scene_confs: dict[str, Any],
-        number_tolerance: int = 1,
-    ) -> None:
-        """Initialize the Hub class.
-
-        Args:
-            hass (HomeAssistant): Home Assistant instance
-            scene_confs (dict[str, Any]): Scene configurations from the scene file
-            number_tolerance (int): Tolerance for comparing numbers
-
-        Raises:
-            StatefulScenesYamlNotFound: If the yaml file is not found
-            StatefulScenesYamlInvalid: If the yaml file is invalid
-
-        """
-        self.number_tolerance = number_tolerance
-        self.hass = hass
-        self.scenes: list[Scene] = []
-        self.scene_confs: list[dict[str, Any]] = []
-
-        for scene_conf in scene_confs:
-            if not self.validate_scene(scene_conf):
-                continue
-            self.scenes.append(
-                Scene(
-                    self.hass,
-                    self.extract_scene_configuration(scene_conf),
-                )
-            )
-            self.scene_confs.append(self.extract_scene_configuration(scene_conf))
-
-    def validate_scene(self, scene_conf: dict) -> None:
-        """Validate scene configuration.
-
-        Args:
-            scene_conf (dict): Scene configuration
-
-        Raises:
-            StatefulScenesYamlInvalid: If the scene is invalid
-
-        Returns:
-            bool: True if the scene is valid
-
-        """
-
-        if "entities" not in scene_conf:
-            raise StatefulScenesYamlInvalid(
-                "Scene is missing entities: " + scene_conf["name"]
-            )
-
-        if "id" not in scene_conf:
-            raise StatefulScenesYamlInvalid(
-                "Scene is missing id: " + scene_conf["name"]
-            )
-
-        for entity_id, scene_attributes in scene_conf["entities"].items():
-            if "state" not in scene_attributes:
-                raise StatefulScenesYamlInvalid(
-                    "Scene is missing state for entity "
-                    + entity_id
-                    + scene_conf["name"]
-                )
-
-        return True
-
-    def extract_scene_configuration(self, scene_conf: dict) -> dict:
-        """Extract entities and attributes from a scene.
-
-        Args:
-            scene_conf (dict): Scene configuration
-
-        Returns:
-            dict: Scene configuration
-
-        """
-        entities = {}
-        for entity_id, scene_attributes in scene_conf["entities"].items():
-            domain = entity_id.split(".")[0]
-            attributes = {"state": scene_attributes["state"]}
-
-            if domain in ATTRIBUTES_TO_CHECK:
-                for attribute, value in scene_attributes.items():
-                    if attribute in ATTRIBUTES_TO_CHECK.get(domain):
-                        attributes[attribute] = value
-
-            entities[entity_id] = attributes
-
-        entity_id = scene_conf.get("entity_id", None)
-        if entity_id is None:
-            entity_id = get_entity_id_from_id(self.hass, scene_conf.get("id"))
-
-        return {
-            "name": scene_conf["name"],
-            "id": scene_conf.get("id", entity_id),
-            "icon": scene_conf.get(
-                "icon", get_icon_from_entity_id(self.hass, entity_id)
-            ),
-            "entity_id": entity_id,
-            "area": area_name(self.hass, area_id(self.hass, entity_id)),
-            "learn": scene_conf.get("learn", False),
-            "entities": entities,
-            "number_tolerance": scene_conf.get(
-                "number_tolerance", self.number_tolerance
-            ),
-        }
-
-    def prepare_external_scene(self, entity_id, entities) -> dict:
-        """Prepare external scene configuration."""
-        return {
-            "name": get_name_from_entity_id(self.hass, entity_id),
-            "id": get_id_from_entity_id(self.hass, entity_id),
-            "icon": get_icon_from_entity_id(self.hass, entity_id),
-            "entity_id": entity_id,
-            "area": area_name(self.hass, area_id(self.hass, entity_id)),
-            "learn": True,
-            "entities": entities,
-        }
-
-    def get_available_scenes(self) -> list[str]:
-        """Get list of all scenes from the hub."""
-        scene_entities: list[str] = [scene.entity_id for scene in self.scenes]
-        return scene_entities
-
 
 
 class Scene:
@@ -203,6 +71,16 @@ class Scene:
 
         if self._entity_id is None:
             self._entity_id = get_entity_id_from_id(self.hass, self._id)
+
+    @property
+    def attributes(self) -> SceneStateAttributes:
+        """Return scene attributes matching SceneStateProtocol."""
+        return SceneStateAttributes({
+            "friendly_name": self.name,
+            "icon": self.icon,
+            "area_id": self.area_id,
+            "entity_id": list(self.entities.keys())
+        })
 
     @property
     def entity_id(self) -> str:
@@ -522,3 +400,137 @@ class Scene:
             conf[entity] = {"state": state.state}
             conf[entity].update(state.attributes)
         return conf
+
+
+class Hub:
+    """State scene class."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        scene_confs: dict[str, Any],
+        number_tolerance: int = 1,
+    ) -> None:
+        """Initialize the Hub class.
+
+        Args:
+            hass (HomeAssistant): Home Assistant instance
+            scene_confs (dict[str, Any]): Scene configurations from the scene file
+            number_tolerance (int): Tolerance for comparing numbers
+
+        Raises:
+            StatefulScenesYamlNotFound: If the yaml file is not found
+            StatefulScenesYamlInvalid: If the yaml file is invalid
+
+        """
+        self.number_tolerance = number_tolerance
+        self.hass = hass
+        self.scenes: list[Scene] = []
+        self.scene_confs: list[dict[str, Any]] = []
+
+        for scene_conf in scene_confs:
+            if not self.validate_scene(scene_conf):
+                continue
+            self.scenes.append(
+                Scene(
+                    self.hass,
+                    self.extract_scene_configuration(scene_conf),
+                )
+            )
+            self.scene_confs.append(self.extract_scene_configuration(scene_conf))
+
+    def validate_scene(self, scene_conf: dict) -> None:
+        """Validate scene configuration.
+
+        Args:
+            scene_conf (dict): Scene configuration
+
+        Raises:
+            StatefulScenesYamlInvalid: If the scene is invalid
+
+        Returns:
+            bool: True if the scene is valid
+
+        """
+
+        if "entities" not in scene_conf:
+            raise StatefulScenesYamlInvalid(
+                "Scene is missing entities: " + scene_conf["name"]
+            )
+
+        if "id" not in scene_conf:
+            raise StatefulScenesYamlInvalid(
+                "Scene is missing id: " + scene_conf["name"]
+            )
+
+        for entity_id, scene_attributes in scene_conf["entities"].items():
+            if "state" not in scene_attributes:
+                raise StatefulScenesYamlInvalid(
+                    "Scene is missing state for entity "
+                    + entity_id
+                    + scene_conf["name"]
+                )
+
+        return True
+
+    def extract_scene_configuration(self, scene_conf: dict) -> dict:
+        """Extract entities and attributes from a scene.
+
+        Args:
+            scene_conf (dict): Scene configuration
+
+        Returns:
+            dict: Scene configuration
+
+        """
+        entities = {}
+        for entity_id, scene_attributes in scene_conf["entities"].items():
+            domain = entity_id.split(".")[0]
+            attributes = {"state": scene_attributes["state"]}
+
+            if domain in ATTRIBUTES_TO_CHECK:
+                for attribute, value in scene_attributes.items():
+                    if attribute in ATTRIBUTES_TO_CHECK.get(domain):
+                        attributes[attribute] = value
+
+            entities[entity_id] = attributes
+
+        entity_id = scene_conf.get("entity_id", None)
+        if entity_id is None:
+            entity_id = get_entity_id_from_id(self.hass, scene_conf.get("id"))
+
+        return {
+            "name": scene_conf["name"],
+            "id": scene_conf.get("id", entity_id),
+            "icon": scene_conf.get(
+                "icon", get_icon_from_entity_id(self.hass, entity_id)
+            ),
+            "entity_id": entity_id,
+            "area": area_name(self.hass, area_id(self.hass, entity_id)),
+            "learn": scene_conf.get("learn", False),
+            "entities": entities,
+            "number_tolerance": scene_conf.get(
+                "number_tolerance", self.number_tolerance
+            ),
+        }
+
+    def prepare_external_scene(self, entity_id, entities) -> dict:
+        """Prepare external scene configuration."""
+        return {
+            "name": get_name_from_entity_id(self.hass, entity_id),
+            "id": get_id_from_entity_id(self.hass, entity_id),
+            "icon": get_icon_from_entity_id(self.hass, entity_id),
+            "entity_id": entity_id,
+            "area": area_name(self.hass, area_id(self.hass, entity_id)),
+            "learn": True,
+            "entities": entities,
+        }
+
+    def get_available_scenes(self) -> list[str]:
+        """Get list of all scenes from the hub."""
+        scene_entities: list[str] = [scene.entity_id for scene in self.scenes]
+        return scene_entities
+
+    def get_scene(self, scene_id: str) -> Scene | None:
+        """Get scene by entity ID."""
+        return next((scene for scene in self.scenes if scene.entity_id == scene_id), None)
