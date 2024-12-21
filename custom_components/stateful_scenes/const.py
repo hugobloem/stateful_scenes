@@ -2,7 +2,7 @@
 
 from typing import Any, Protocol
 
-from homeassistant.helpers.entity_registry import ReadOnlyDict
+from homeassistant.util.read_only_dict import ReadOnlyDict
 
 DOMAIN = "stateful_scenes"
 
