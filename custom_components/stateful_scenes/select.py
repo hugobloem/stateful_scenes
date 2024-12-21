@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, cast
 
-from homeassistant.helpers.entity_registry import ReadOnlyDict
-
 if TYPE_CHECKING:
     # mypy cannot workout _cache Protocol with attrs
     from propcache import cached_property as under_cached_property
@@ -28,12 +26,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 
 from .const import (
-    DEFAULT_OFF_SCENE_ENTITY_ID, 
-    DEVICE_INFO_MANUFACTURER, 
-    DOMAIN, 
+    DEFAULT_OFF_SCENE_ENTITY_ID,
+    DEVICE_INFO_MANUFACTURER,
+    DOMAIN,
     SceneStateProtocol,
 )
-
 from .StatefulScenes import Hub, Scene
 
 _LOGGER = logging.getLogger(__name__)
