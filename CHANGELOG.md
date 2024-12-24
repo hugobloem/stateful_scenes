@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.6.0](https://github.com/hugobloem/stateful_scenes/compare/v1.5.2...v1.6.0) (2024-12-24)
+
+
+### 🚀 Features
+
+* Add an option to activate another scene when the Stateful Scene is turned off ([dd4ac5c](https://github.com/hugobloem/stateful_scenes/commit/dd4ac5cabe74f02ae297d0b18beaaebf16c1eefc))
+
+
+### 🔨 Code Refactoring
+
+* allowing the 'off' select to query Hub for some internal scene data ([#159](https://github.com/hugobloem/stateful_scenes/issues/159)) ([7c984b2](https://github.com/hugobloem/stateful_scenes/commit/7c984b27be3d1c02352ff73bd904d5e8056a4090))
+* simplify entity attribute retrieval using state_attr ([#162](https://github.com/hugobloem/stateful_scenes/issues/162)) ([aa0eba1](https://github.com/hugobloem/stateful_scenes/commit/aa0eba1f28ec1f6491e0deefaf871e7d113015c4))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump astral-sh/setup-uv from 4 to 5 ([#160](https://github.com/hugobloem/stateful_scenes/issues/160)) ([ba0a613](https://github.com/hugobloem/stateful_scenes/commit/ba0a613347318c10ee34cd3a50bddf04fdbf6bb6))
+
 ## [1.5.2](https://github.com/hugobloem/stateful_scenes/compare/v1.5.1...v1.5.2) (2024-12-15)
 
 
