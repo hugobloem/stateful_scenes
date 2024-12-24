@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, cast
 
+
 if TYPE_CHECKING:
     # mypy cannot workout _cache Protocol with attrs
     from propcache import cached_property as under_cached_property

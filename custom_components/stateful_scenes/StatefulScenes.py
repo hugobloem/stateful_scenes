@@ -4,6 +4,8 @@ import asyncio
 import logging
 from typing import Any
 
+from typing import Any
+
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
 from homeassistant.helpers.template import area_id, area_name
 
@@ -38,7 +40,7 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
             return entity_id
     return None
 
-
+  
 class Scene:
     """State scene class."""
 
