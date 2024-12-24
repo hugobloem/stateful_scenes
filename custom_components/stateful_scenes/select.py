@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Protocol, Set, cast
+from typing import TYPE_CHECKING, cast
 
-from homeassistant.helpers.entity_registry import ReadOnlyDict
 
 if TYPE_CHECKING:
     # mypy cannot workout _cache Protocol with attrs
@@ -27,25 +26,15 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 
-from .const import DEFAULT_OFF_SCENE_ENTITY_ID, DEVICE_INFO_MANUFACTURER, DOMAIN
+from .const import (
+    DEFAULT_OFF_SCENE_ENTITY_ID,
+    DEVICE_INFO_MANUFACTURER,
+    DOMAIN,
+    SceneStateProtocol,
+)
 from .StatefulScenes import Hub, Scene
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class StateProtocol(Protocol):
-    """Protocol for State with known attributes type."""
-
-    @property
-    def attributes(self) -> SceneStateAttributes: ...  # noqa: D102
-
-class SceneStateAttributes(ReadOnlyDict[str, Any]):
-    """Scene state attributes."""
-
-    friendly_name: str
-    icon: str | None
-    area_id: str | None
-    entity_id: list[str]
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -89,17 +78,17 @@ class StatefulSceneOffSelect(SelectEntity):
         if self._hub:
             for opt in self._hub.get_available_scenes():
                 if opt != self._scene.entity_id:
-                    scene_entity = cast(StateProtocol | None, self._scene.hass.states.get(opt))
-                    if scene_entity:
-                        friendly_name = scene_entity.attributes.get("friendly_name", opt)
+                    hub_scene = cast(SceneStateProtocol | None, self._hub.get_scene(opt))
+                    if hub_scene:
+                        friendly_name = hub_scene.attributes.get("friendly_name", opt)
                         scenes.append((opt, friendly_name))
         else:
-            # Stand-alone case
+            # Stand-alone case, filter out internal scenes and current scene
             hub_scenes: set[str] = set(self._hub.get_available_scenes()) if self._hub else set()
             states: list[State] = self._scene.hass.states.async_all("scene")
             for state in states:
                 if state.entity_id != self._scene.entity_id and state.entity_id not in hub_scenes:
-                    scene_entity = cast(StateProtocol | None, self._scene.hass.states.get(state.entity_id))
+                    scene_entity = cast(SceneStateProtocol | None, self._scene.hass.states.get(state.entity_id))
                     if scene_entity:
                         friendly_name = scene_entity.attributes.get("friendly_name", state.entity_id)
                         scenes.append((state.entity_id, friendly_name))
