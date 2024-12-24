@@ -4,8 +4,6 @@ import asyncio
 import logging
 from typing import Any
 
-from typing import Any
-
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
 from homeassistant.helpers.template import area_id, area_name
 
@@ -40,7 +38,7 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
             return entity_id
     return None
 
-  
+
 class Scene:
     """State scene class."""
 
@@ -77,12 +75,14 @@ class Scene:
     @property
     def attributes(self) -> SceneStateAttributes:
         """Return scene attributes matching SceneStateProtocol."""
-        return SceneStateAttributes({
-            "friendly_name": self.name,
-            "icon": self.icon,
-            "area_id": self.area_id,
-            "entity_id": list(self.entities.keys())
-        })
+        return SceneStateAttributes(
+            {
+                "friendly_name": self.name,
+                "icon": self.icon,
+                "area_id": self.area_id,
+                "entity_id": list(self.entities.keys()),
+            }
+        )
 
     @property
     def entity_id(self) -> str:
@@ -535,4 +535,6 @@ class Hub:
 
     def get_scene(self, scene_id: str) -> Scene | None:
         """Get scene by entity ID."""
-        return next((scene for scene in self.scenes if scene.entity_id == scene_id), None)
+        return next(
+            (scene for scene in self.scenes if scene.entity_id == scene_id), None
+        )
