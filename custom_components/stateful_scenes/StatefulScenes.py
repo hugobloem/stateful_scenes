@@ -5,6 +5,7 @@ import logging
 from typing import Any
 
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.template import area_id, area_name
 
 from .const import (
@@ -39,6 +40,75 @@ def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
     return None
 
 
+class SceneEvaluationTimer:
+    """Manages an HA scheduled cancellable timer for transition followed by debounce."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        transition_time: float = 0.0,
+        debounce_time: float = 0.0,
+    ) -> None:
+        """Initialize with no active timer."""
+        self._cancel_callback = None
+        self._transition_time = transition_time
+        self._debounce_time = debounce_time
+        self._hass = hass
+
+    async def async_start(self, callback) -> None:
+        """Start a new timer if we have a duration."""
+        await self._hass.async_add_executor_job(self.cancel_if_active)
+        if self.transition_time > 0 and self._hass is not None:
+            _LOGGER.debug(
+                "Starting scene evaluation timer for %s seconds",
+                self.transition_time + self.debounce_time,
+            )
+
+            self._cancel_callback = async_call_later(
+                self._hass,
+                self.transition_time + self.debounce_time,
+                callback,
+            )
+
+    @property
+    def transition_time(self) -> float:
+        """Get the timer duration."""
+        return self._transition_time
+
+    def set_transition_time(self, time: float) -> None:
+        """Set the timer duration."""
+        self._transition_time = time or 0.0
+
+    @property
+    def debounce_time(self) -> float:
+        """Get the timer duration."""
+        return self._debounce_time
+
+    def set_debounce_time(self, time: float) -> None:
+        """Set the timer duration."""
+        self._debounce_time = time or 0.0
+
+    def set(self, cancel_callback) -> None:
+        """Store new timer's cancel callback."""
+        self._cancel_callback = cancel_callback
+
+    def cancel_if_active(self) -> None:
+        """Cancel current timer if active."""
+        if self._cancel_callback:
+            _LOGGER.debug("Cancelling active scene evaluation timer")
+            self._cancel_callback()
+            self._cancel_callback = None
+
+    def is_active(self) -> bool:
+        """Return whether there is an active scene evaluation timer."""
+        return self._cancel_callback is not None
+
+    async def async_clear(self) -> None:
+        """Clear timer state without cancelling."""
+        _LOGGER.debug("Clearing scene evaluation timer state")
+        self._cancel_callback = None
+
+
 class Scene:
     """State scene class."""
 
@@ -53,13 +123,15 @@ class Scene:
         self.learn = scene_conf[CONF_SCENE_LEARN]
         self.entities = scene_conf[CONF_SCENE_ENTITIES]
         self.icon = scene_conf[CONF_SCENE_ICON]
-        self._is_on = None
+        self._is_on = False
         self._transition_time: float = 0.0
         self._restore_on_deactivate = True
-        self._debounce_time: float = 0
+        self._debounce_time: float = 0.0
         self._ignore_unavailable = False
         self._off_scene_entity_id = None
-
+        self._scene_evaluation_timer = SceneEvaluationTimer(
+            hass, self._transition_time, self._debounce_time
+        )
         self.callback = None
         self.callback_funcs = {}
         self.schedule_update = None
@@ -117,6 +189,13 @@ class Scene:
         for entity_id in self.entities:
             self.store_entity_state(entity_id)
 
+        asyncio.run_coroutine_threadsafe(
+            self._scene_evaluation_timer.async_start(
+                self.async_timer_evaluate_scene_state
+            ),
+            self.hass.loop,
+        ).result()
+
         self.hass.services.call(
             domain="scene",
             service="turn_on",
@@ -142,6 +221,7 @@ class Scene:
             return
 
         if self._off_scene_entity_id:
+            self._scene_evaluation_timer.cancel_if_active()
             self.hass.services.call(
                 domain="scene",
                 service="turn_on",
@@ -149,6 +229,12 @@ class Scene:
                 service_data={"transition": self._transition_time},
             )
         elif self.restore_on_deactivate:
+            asyncio.run_coroutine_threadsafe(
+                self._scene_evaluation_timer.async_start(
+                    self.async_timer_evaluate_scene_state
+                ),
+                self.hass.loop,
+            ).result()
             self.restore()
         else:
             self.hass.services.call(
@@ -176,15 +262,17 @@ class Scene:
     def set_transition_time(self, transition_time):
         """Set the transition time."""
         self._transition_time = transition_time
+        self._scene_evaluation_timer.set_transition_time(transition_time)
 
     @property
     def debounce_time(self) -> float:
         """Get the debounce time."""
-        return self._debounce_time
+        return self._scene_evaluation_timer.transition_time
 
     def set_debounce_time(self, debounce_time: float):
         """Set the debounce time."""
         self._debounce_time = debounce_time or 0.0
+        self._scene_evaluation_timer.set_debounce_time(debounce_time)
 
     @property
     def restore_on_deactivate(self) -> bool:
@@ -221,7 +309,7 @@ class Scene:
             self.callback()
             self.callback = None
 
-    async def update_callback(self, event: Event[EventStateChangedData]):
+    def update_callback(self, event: Event[EventStateChangedData]):
         """Update the scene when a tracked entity changes state."""
         entity_id = event.data.get("entity_id")
         new_state = event.data.get("new_state")
@@ -229,8 +317,22 @@ class Scene:
 
         self.store_entity_state(entity_id, old_state)
         if self.is_interesting_update(old_state, new_state):
-            await asyncio.sleep(self.debounce_time)
-            self.schedule_update(True)
+            if not self._scene_evaluation_timer.is_active():
+                asyncio.run_coroutine_threadsafe(
+                    self.async_evaluate_scene_state(), self.hass.loop
+                ).result()
+
+    async def async_evaluate_scene_state(self):
+        """Evaluate scene state immediately."""
+        await self.hass.async_add_executor_job(self.check_all_states)
+        if self.schedule_update:
+            await self.hass.async_add_executor_job(self.schedule_update, True)
+
+    async def async_timer_evaluate_scene_state(self, _now):
+        """Handle Callback from HA after expiration of SceneEvaluationTimer."""
+        await self._scene_evaluation_timer.async_clear()
+        _LOGGER.debug("SceneEvaluationTimer triggered eval callback: %s", self.name)
+        await self.async_evaluate_scene_state()
 
     def is_interesting_update(self, old_state, new_state):
         """Check if the state change is interesting."""
@@ -255,7 +357,7 @@ class Scene:
     def check_state(self, entity_id, new_state):
         """Check the state of the scene."""
         if new_state is None:
-            _LOGGER.warning(f"Entity not found: {entity_id}")
+            _LOGGER.warning("Entity not found: %s", entity_id)
             return False
 
         if self.ignore_unavailable and new_state.state == "unavailable":
@@ -315,8 +417,8 @@ class Scene:
 
         if not states:
             self._is_on = False
-
-        self._is_on = all(states)
+        else:
+            self._is_on = all(states)
 
     def store_entity_state(self, entity_id, state=None):
         """Store the state of an entity.

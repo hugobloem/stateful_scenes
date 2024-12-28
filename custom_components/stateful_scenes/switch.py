@@ -152,11 +152,13 @@ class StatefulSceneSwitch(SwitchEntity):
         """
         self._scene.turn_on()
         self._is_on = self._scene.is_on
+        self.schedule_update_ha_state()
 
     def turn_off(self, **kwargs) -> None:
         """Instruct the light to turn off."""
         self._scene.turn_off()
         self._is_on = self._scene.is_on
+        self.schedule_update_ha_state()
 
     async def async_added_to_hass(self) -> None:
         """Validate and set the actual scene state on restart."""
