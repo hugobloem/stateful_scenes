@@ -176,7 +176,7 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
         async_track_state_change_event(
             self.hass, [restore_entity_id], self.async_update_restore_state
         )
-        
+
         # Get initial restore state
         if state := self.hass.states.get(restore_entity_id):
             self._restore_on_deactivate_state = state.state
