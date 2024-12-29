@@ -253,7 +253,7 @@ class Scene:
         return False
 
     def check_state(self, entity_id, new_state):
-        """Check the state of the scene."""
+        """Check if entity's current state matches the scene's defined state."""
         if new_state is None:
             _LOGGER.warning(f"Entity not found: {entity_id}")
             return False
@@ -273,6 +273,11 @@ class Scene:
             return False
 
         # Check attributes
+        # If both desired and current states are "off", consider it a match regardless of attributes
+        if new_state.state == "off" and self.entities[entity_id]["state"] == "off":
+            return True
+
+        # Only check attributes if entity isn't "off"
         if new_state.domain in ATTRIBUTES_TO_CHECK:
             entity_attrs = new_state.attributes
             for attribute in ATTRIBUTES_TO_CHECK.get(new_state.domain):
