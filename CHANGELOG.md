@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.6.1](https://github.com/hugobloem/stateful_scenes/compare/v1.6.0...v1.6.1) (2024-12-29)
+
+
+### 🐛 Bugfixes
+
+* address race condition and consider transition time when using debounce ([#167](https://github.com/hugobloem/stateful_scenes/issues/167)) ([efd0423](https://github.com/hugobloem/stateful_scenes/commit/efd0423d00ce21b1a0fa8db5f0b68222f68e6c51))
+* If the scene 'on' state includes entities that are off don't check additional attributes ([#168](https://github.com/hugobloem/stateful_scenes/issues/168)) ([1c50f98](https://github.com/hugobloem/stateful_scenes/commit/1c50f98a71a83b6163f3ec180237bcff5c590e52))
+* restore off scene during HA restart ([#165](https://github.com/hugobloem/stateful_scenes/issues/165)) ([3aa5776](https://github.com/hugobloem/stateful_scenes/commit/3aa5776b4c0f530d618f3072f329c47b397475e4))
+
 ## [1.6.0](https://github.com/hugobloem/stateful_scenes/compare/v1.5.2...v1.6.0) (2024-12-24)
 
 
