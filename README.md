@@ -39,11 +39,11 @@ Some attributes such as light brightness will be rounded off. Therefore, to asse
 You can set up Stateful Scenes to restore the state of the entities when you want to turn off a scene. This can also be configured per Stateful Scene by going to the device page.  Some complex scenes might not be able to restore the state of all the entities and may benefit from configuring an opposing 'off' scene as described below.
 
 ### Transition time
-Furthermore, you can specify the default transition time for applying scenes. This will gradually change the lights of a scene to the specified state. It does need to be supported by your lights.
+Furthermore, you can specify the default transition time for applying scenes. This will gradually change the lights of a scene to the specified state. Transition time does need to be supported by your lights.
 
 ### Debounce time
 
-After activating a scene by turning on a stateful scene switch, entities may need some time to achieve their desired states. When first turned on, the scene state switch will be assumed to be 'on'; the debounce time setting controls how long this integration will wait after observing a member entity state update event before reevaluating the entity state to determine if the scene is still active. If you're having issues with scenes immediately deactivating/reactivating, consider increasing this debounce time.
+After activating a scene by turning on a stateful scene switch, entities may need some time to achieve their desired states after the transition time elapses. When first turned on, the scene state switch will be assumed to be 'on'; the debounce time setting controls how long this integration will wait after observing a member entity state update event before reevaluating the entity state to determine if the scene is still active. If you're having issues with scenes immediately deactivating/reactivating, consider increasing this debounce time.
 
 This setting is measured in seconds, but sub-second values (e.g '0.1' for 100ms delay) can be provided such that the delay is not perceptible to humans viewing a dashboard, for example.
 
@@ -61,13 +61,13 @@ Note that while all entity states are supported only some entity attributes are 
 ## Scene configurations
 For each scene you can specify:
 
-- The debounce time
+- The debounce time which is applied after the transition time has elapsed
 - Whether to ignore stateful scene changes when the underlying scene is unavailable
 - Specify an opposing 'off' scene that is activated when the stateful scene is deactivated
     (when Restore is off)
 - Restore the previous state on deactivation by changing the variables on the scene's device page.
 - The scene tolerance for the stateful scene to be active
-- The individual transition time 
+- The individual transition time
 
 ## External Scenes
 > Note this is an EXPERIMENTAL feature and may not work correctly for your setup. I have tested it with scenes configured in Zigbee2MQTT which works, but I do not have access to a Hue hub which therefore may not work correctly. If you are experiencing issues, please let me know or open a pull request with the improvements. 
