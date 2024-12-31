@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, cast
-
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     # mypy cannot workout _cache Protocol with attrs
@@ -26,7 +25,6 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
-
 
 from .const import (
     DEFAULT_OFF_SCENE_ENTITY_ID,
@@ -75,12 +73,11 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
         self._cache: dict[str, bool | DeviceInfo] = {}
         self._attr_entity_category = EntityCategory.CONFIG
         self._restore_on_deactivate_state: str | None = None
+        self._off_scene_entity_id: str | None = None  # Variable to store the off scene entity ID
 
     def _get_available_off_scenes(self) -> list[tuple[str, str]]:
         """Get list of available scenes with friendly names."""
-        scenes: list[tuple[str, str]] = [
-            (DEFAULT_OFF_SCENE_ENTITY_ID, DEFAULT_OFF_SCENE_ENTITY_ID)
-        ]
+        scenes: list[tuple[str, str]] = []
 
         if self._hub:
             for opt in self._hub.get_available_scenes():
@@ -114,12 +111,22 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
 
         # Sort scenes by friendly name
         scenes.sort(key=lambda x: x[1].lower())
+
+        scenes.insert(0, (DEFAULT_OFF_SCENE_ENTITY_ID, DEFAULT_OFF_SCENE_ENTITY_ID))
+
         return scenes
 
     @property
     def available(self) -> bool:  # type: ignore[incompatible-override] # Need UI to update
         """Return entity is available based on restore state toggle state."""
         return self._restore_on_deactivate_state == "off"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return entity specific state attributes."""
+        return {
+            "off_scene_entity_id": self._off_scene_entity_id,
+        }
 
     @callback
     def async_update_restore_state(
@@ -150,50 +157,53 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
         """Restore last state and set up tracking."""
         await super().async_added_to_hass()
 
-        # First set up available options
-        scenes = self._get_available_off_scenes()
-        self._entity_id_map = {
-            friendly_name: entity_id for entity_id, friendly_name in scenes
-        }
-        self._attr_options = [friendly_name for _, friendly_name in scenes]
+        # Initialize defaults
+        self._off_scene_entity_id = None
+        self._attr_current_option = DEFAULT_OFF_SCENE_ENTITY_ID
 
-        # Restore previous selection if available
+        # Restore state if available
         if last_state := await self.async_get_last_state():
-            if last_state.state in self._attr_options:
-                self._attr_current_option = last_state.state
-                self._scene.set_off_scene(self._entity_id_map[last_state.state])
-                _LOGGER.debug(
-                    "Restored off scene selection for %s to %s",
-                    self._scene.name,
-                    last_state.state,
-                )
+            # Check for stored entity_id in attributes
+            if stored_entity_id := last_state.attributes.get("off_scene_entity_id"):
+                self._off_scene_entity_id = stored_entity_id
+                state = self.hass.states.get(stored_entity_id)
+                if state:
+                    self._attr_current_option = state.attributes.get("friendly_name", stored_entity_id)
+            # Fall back to friendly name  if no stored entity_id for backward compatibility to 1.60
+            elif last_state.state not in [None, "unavailable", "unknown", DEFAULT_OFF_SCENE_ENTITY_ID]:
+                restored_state = last_state.state
+                if not restored_state.startswith("scene."):
+                    # Map friendly name to entity_id
+                    states: list[State] = self.hass.states.async_all("scene")
+                    for state in states:
+                        if state.attributes.get("friendly_name") == restored_state:
+                            self._off_scene_entity_id = state.entity_id
+                            break
+                else:
+                    self._off_scene_entity_id = restored_state
 
-        # Set up restore state tracking
+                self._attr_current_option = restored_state
+
+            self._scene.set_off_scene(self._off_scene_entity_id)
+            _LOGGER.debug(
+                "Restored off scene for %s to: %s (from: %s)",
+                self._scene.name,
+                self._off_scene_entity_id,
+                last_state.state,
+            )
+
+        # Set up callback for future state changes
         restore_entity_id = (
             f"switch.{self._scene.name.lower().replace(' ', '_')}_restore_on_deactivate"
         )
-        _LOGGER.debug("Setting up state change listener for %s", restore_entity_id)
         async_track_state_change_event(
             self.hass, [restore_entity_id], self.async_update_restore_state
         )
-
-        # Get initial restore state
-        if state := self.hass.states.get(restore_entity_id):
-            self._restore_on_deactivate_state = state.state
-            _LOGGER.debug(
-                "Initial Restore on Deactivate state for %s: %s",
-                restore_entity_id,
-                self._restore_on_deactivate_state,
-            )
-            await self.async_update_restore_state(None)
 
     @under_cached_property
     def device_info(self) -> DeviceInfo:
         """Return device info."""
         return DeviceInfo(
-            # In this integration's platform files following perhaps should be...
-            # identifiers={(DOMAIN, self._scene.id)},
-            # but the integration would break changing one file alone
             identifiers={(self._scene.id,)},
             name=self._scene.name,
             manufacturer=DEVICE_INFO_MANUFACTURER,
@@ -202,12 +212,23 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
 
     def select_option(self, option: str) -> None:
         """Update the current selected option."""
-        entity_id = self._entity_id_map[option]
-        if entity_id == DEFAULT_OFF_SCENE_ENTITY_ID:
-            self._scene.set_off_scene(None)
-        else:
-            self._scene.set_off_scene(entity_id)
         self._attr_current_option = option
+
+        if option == DEFAULT_OFF_SCENE_ENTITY_ID:
+            self._off_scene_entity_id = None
+        else:
+            # Map friendly name to entity_id
+            self._off_scene_entity_id = self._entity_id_map.get(option)
+
+        self._scene.set_off_scene(self._off_scene_entity_id)
+        self.schedule_update_ha_state()
+
+        _LOGGER.debug(
+            "Selected off scene for %s: %s (entity_id: %s)",
+            self._scene.name,
+            option,
+            self._off_scene_entity_id,
+        )
 
     @property
     def options(self) -> list[str]:  # type: ignore[incompatible-override] # Need UI to update
