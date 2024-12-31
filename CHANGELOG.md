@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/hugobloem/stateful_scenes/compare/v1.6.1...v1.6.2) (2024-12-31)
+
+
+### 🐛 Bugfixes
+
+* Fixed off scene select restoration reading unavailable data ([#171](https://github.com/hugobloem/stateful_scenes/issues/171)) ([a4a3e33](https://github.com/hugobloem/stateful_scenes/commit/a4a3e3379f2ff7d2ae2b60ebcb8acb2badc2eb00))
+
 ## [1.6.1](https://github.com/hugobloem/stateful_scenes/compare/v1.6.0...v1.6.1) (2024-12-29)
 
 
