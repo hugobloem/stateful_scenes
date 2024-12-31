@@ -4,18 +4,23 @@ from __future__ import annotations
 
 import logging
 
+import voluptuous as vol
+
+from homeassistant.components.switch import (
+    PLATFORM_SCHEMA as SWITCH_PLATFORM_SCHEMA,
+    SwitchEntity,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_ON, EntityCategory
+from homeassistant.core import HomeAssistant
+
 # Import the device class from the component that you want to support
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, STATE_ON
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from . import StatefulScenes
 from .const import (
@@ -30,7 +35,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 # Validation of the user's configuration
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
+SWITCH_PLATFORM_SCHEMA = SWITCH_PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_SCENE_PATH, default=DEFAULT_SCENE_PATH): cv.string,
         vol.Optional(
@@ -164,19 +169,19 @@ class StatefulSceneSwitch(SwitchEntity):
         """Validate and set the actual scene state on restart."""
         await super().async_added_to_hass()
 
-        def _validate_scene_state():
-            self._scene.check_all_states()
+        async def async_validate_scene_state(_now=None):
+            await self._scene.async_check_all_states()
             self._is_on = self._scene.is_on
-            self.schedule_update_ha_state()
+            self.async_write_ha_state()
 
-        self.hass.loop.call_later(1, _validate_scene_state)
+        await async_validate_scene_state()
 
-    def update(self) -> None:
+    async def async_update(self) -> None:
         """Fetch new state data for this light.
 
         This is the only method that should fetch new data for Home Assistant.
         """
-        self._scene.check_all_states()
+        await self._scene.async_check_all_states()
         self._is_on = self._scene.is_on
 
     def register_callback(self) -> None:

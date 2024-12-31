@@ -5,6 +5,7 @@ import logging
 from typing import Any
 
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.template import area_id, area_name
 
@@ -57,7 +58,7 @@ class SceneEvaluationTimer:
 
     async def async_start(self, callback) -> None:
         """Start a new timer if we have a duration."""
-        await self._hass.async_add_executor_job(self.cancel_if_active)
+        await self.async_cancel_if_active()
         if self.transition_time > 0 and self._hass is not None:
             _LOGGER.debug(
                 "Starting scene evaluation timer for %s seconds",
@@ -88,14 +89,17 @@ class SceneEvaluationTimer:
         """Set the timer duration."""
         self._debounce_time = time or 0.0
 
-    def set(self, cancel_callback) -> None:
-        """Store new timer's cancel callback."""
-        self._cancel_callback = cancel_callback
-
     def cancel_if_active(self) -> None:
         """Cancel current timer if active."""
         if self._cancel_callback:
-            _LOGGER.debug("Cancelling active scene evaluation timer")
+            _LOGGER.debug("Sync cancelling active scene evaluation timer")
+            self._cancel_callback()
+            self._cancel_callback = None
+
+    async def async_cancel_if_active(self) -> None:
+        """Cancel current timer if active."""
+        if self._cancel_callback:
+            _LOGGER.debug("Async cancelling active scene evaluation timer")
             self._cancel_callback()
             self._cancel_callback = None
 
@@ -324,9 +328,10 @@ class Scene:
 
     async def async_evaluate_scene_state(self):
         """Evaluate scene state immediately."""
-        await self.hass.async_add_executor_job(self.check_all_states)
+        _LOGGER.debug("[Scene: %s] Starting scene evaluation", self.name)
+        await self.async_check_all_states()
         if self.schedule_update:
-            await self.hass.async_add_executor_job(self.schedule_update, True)
+            self.schedule_update(True)
 
     async def async_timer_evaluate_scene_state(self, _now):
         """Handle Callback from HA after expiration of SceneEvaluationTimer."""
@@ -337,6 +342,8 @@ class Scene:
     def is_interesting_update(self, old_state, new_state):
         """Check if the state change is interesting."""
         if old_state is None:
+            if new_state is None:
+                _LOGGER.warning("New State is None and Old State is None")
             return True
         if not self.compare_values(old_state.state, new_state.state):
             return True
@@ -354,11 +361,31 @@ class Scene:
                     return True
         return False
 
-    def check_state(self, entity_id, new_state):
+    async def async_check_state(self, entity_id, new_state):
         """Check if entity's current state matches the scene's defined state."""
         if new_state is None:
-            _LOGGER.warning("Entity not found: %s", entity_id)
-            return False
+            # Check if entity exists in registry
+            # Get entity registry directly
+            registry = er.async_get(self.hass)
+            entry = registry.async_get(entity_id)
+
+            if entry is None:
+                _LOGGER.debug(
+                    "[Scene: %s] Entity %s not found in registry.",
+                    self.name,
+                    entity_id,
+                )
+                return False
+
+            # Check if entity exists in state
+            new_state = self.hass.states.get(entity_id)
+            if new_state is None:
+                _LOGGER.debug(
+                    "[Scene: %s] Entity %s not found in state.",
+                    self.name,
+                    entity_id,
+                )
+                return False
 
         if self.ignore_unavailable and new_state.state == "unavailable":
             return None
@@ -407,7 +434,7 @@ class Scene:
         )
         return True
 
-    def check_all_states(self):
+    async def async_check_all_states(self):
         """Check the state of the scene.
 
         If all entities are in the desired state, the scene is on. If any entity is not
@@ -416,14 +443,11 @@ class Scene:
         """
         for entity_id in self.entities:
             state = self.hass.states.get(entity_id)
-            self.states[entity_id] = self.check_state(entity_id, state)
+            self.states[entity_id] = await self.async_check_state(entity_id, state)
 
         states = [state for state in self.states.values() if state is not None]
-
-        if not states:
-            self._is_on = False
-        else:
-            self._is_on = all(states)
+        result = all(states) if states else False
+        self._is_on = result
 
     def store_entity_state(self, entity_id, state=None):
         """Store the state of an entity.
