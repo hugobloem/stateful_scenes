@@ -34,7 +34,7 @@ class DiscoveryManager:
         self.hass = hass
         self.ha_config = ha_config
 
-    async def start_discovery(self) -> None:
+    async def async_start_discovery(self) -> None:
         """Start the discovery procedure."""
         _LOGGER.debug("Start auto discovering devices")
         entity_registry = er.async_get(self.hass)

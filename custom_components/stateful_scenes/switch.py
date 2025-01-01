@@ -4,18 +4,23 @@ from __future__ import annotations
 
 import logging
 
+import voluptuous as vol
+
+from homeassistant.components.switch import (
+    PLATFORM_SCHEMA as SWITCH_PLATFORM_SCHEMA,
+    SwitchEntity,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_ON, EntityCategory
+from homeassistant.core import HomeAssistant
+
 # Import the device class from the component that you want to support
 import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-from homeassistant.components.switch import PLATFORM_SCHEMA, SwitchEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, STATE_ON
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from . import StatefulScenes
 from .const import (
@@ -30,7 +35,7 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 # Validation of the user's configuration
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
+SWITCH_PLATFORM_SCHEMA = SWITCH_PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_SCENE_PATH, default=DEFAULT_SCENE_PATH): cv.string,
         vol.Optional(
@@ -40,26 +45,22 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-def setup_platform(
+async def async_setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
-    add_entities: AddEntitiesCallback,
+    async_add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
-    """Set up the Awesome Light platform."""
+    """Set up the Switch platform."""
     # Assign configuration variables.
     # The configuration check takes care they are present.
     scene_path = config[CONF_SCENE_PATH]
-
-    # Setup connection with devices/cloud
     hub = StatefulScenes.Hub(hass, scene_path)
-
-    # Add devices
-    add_entities(StatefulSceneSwitch(scene) for scene in hub.scenes)
+    async_add_entities(StatefulSceneSwitch(scene) for scene in hub.scenes)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> bool:
     """Set up this integration using UI."""
     assert hass is not None
@@ -92,7 +93,7 @@ async def async_setup_entry(
         _LOGGER.error("Invalid entity type for %s", entry.entry_id)
         return False
 
-    add_entities(entities)
+    async_add_entities(entities)
 
     return True
 
@@ -113,16 +114,30 @@ class StatefulSceneSwitch(SwitchEntity):
         self._icon = scene.icon
         self._attr_unique_id = f"stateful_{scene.id}"
 
+        # Initialize callback functions but don't register yet - will do in async_added_to_hass
         self._scene.callback_funcs = {
             "state_change_func": async_track_state_change_event,
-            "schedule_update_func": self.schedule_update_ha_state,
+            "schedule_update_func": self.async_schedule_update_ha_state,
         }
-        self.register_callback()
+
+    async def async_added_to_hass(self) -> None:
+        """Set up the entity when added to hass."""
+        await super().async_added_to_hass()
+
+        # Register callback after entity is added to hass
+        await self.async_register_callback()
+
+        async def async_validate_scene_state(_now=None):
+            await self._scene.async_check_all_states()
+            self._is_on = self._scene.is_on
+            self.async_write_ha_state()
+
+        await async_validate_scene_state()
 
     @property
     def is_on(self) -> bool:
         """Return true if light is on."""
-        return self._is_on
+        return self._scene.is_on
 
     @property
     def name(self) -> str:
@@ -144,48 +159,33 @@ class StatefulSceneSwitch(SwitchEntity):
             manufacturer=DEVICE_INFO_MANUFACTURER,
         )
 
-    def turn_on(self, **kwargs) -> None:
-        """Instruct the light to turn on.
-
-        You can skip the brightness part if your light does not support
-        brightness control.
-        """
-        self._scene.turn_on()
+    async def async_turn_on(self, **kwargs) -> None:
+        """Instruct the light to turn on."""
+        await self._scene.async_turn_on()
         self._is_on = self._scene.is_on
-        self.schedule_update_ha_state()
+        self.async_schedule_update_ha_state()
 
-    def turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Instruct the light to turn off."""
-        self._scene.turn_off()
+        await self._scene.async_turn_off()
         self._is_on = self._scene.is_on
-        self.schedule_update_ha_state()
+        self.async_schedule_update_ha_state()
 
-    async def async_added_to_hass(self) -> None:
-        """Validate and set the actual scene state on restart."""
-        await super().async_added_to_hass()
-
-        def _validate_scene_state():
-            self._scene.check_all_states()
-            self._is_on = self._scene.is_on
-            self.schedule_update_ha_state()
-
-        self.hass.loop.call_later(1, _validate_scene_state)
-
-    def update(self) -> None:
+    async def async_update(self) -> None:
         """Fetch new state data for this light.
 
         This is the only method that should fetch new data for Home Assistant.
         """
-        self._scene.check_all_states()
+        await self._scene.async_check_all_states()
         self._is_on = self._scene.is_on
 
-    def register_callback(self) -> None:
+    async def async_register_callback(self) -> None:
         """Register callback to update hass when state changes."""
-        self._scene.register_callback()
+        await self._scene.async_register_callback()
 
-    def unregister_callback(self) -> None:
+    async def async_unregister_callback(self) -> None:
         """Unregister callback."""
-        self._scene.unregister_callback()
+        await self._scene.async_unregister_callback()
 
 
 class RestoreOnDeactivate(SwitchEntity, RestoreEntity):
@@ -225,7 +225,7 @@ class RestoreOnDeactivate(SwitchEntity, RestoreEntity):
         """Return true if light is on."""
         return self._is_on
 
-    def turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Instruct the light to turn on.
 
         You can skip the brightness part if your light does not support
@@ -234,12 +234,12 @@ class RestoreOnDeactivate(SwitchEntity, RestoreEntity):
         self._scene.set_restore_on_deactivate(True)
         self._is_on = self._scene.restore_on_deactivate
 
-    def turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Instruct the light to turn off."""
         self._scene.set_restore_on_deactivate(False)
         self._is_on = self._scene.restore_on_deactivate
 
-    def update(self) -> None:
+    async def async_update(self) -> None:
         """Fetch new state data for this light.
 
         This is the only method that should fetch new data for Home Assistant.
@@ -291,7 +291,7 @@ class IgnoreUnavailable(SwitchEntity, RestoreEntity):
         """Return true if light is on."""
         return self._is_on
 
-    def turn_on(self, **kwargs) -> None:
+    async def async_turn_on(self, **kwargs) -> None:
         """Instruct the light to turn on.
 
         You can skip the brightness part if your light does not support
@@ -300,12 +300,12 @@ class IgnoreUnavailable(SwitchEntity, RestoreEntity):
         self._scene.set_ignore_unavailable(True)
         self._is_on = self._scene.restore_on_deactivate
 
-    def turn_off(self, **kwargs) -> None:
+    async def async_turn_off(self, **kwargs) -> None:
         """Instruct the light to turn off."""
         self._scene.set_ignore_unavailable(False)
         self._is_on = self._scene.restore_on_deactivate
 
-    def update(self) -> None:
+    async def async_update(self) -> None:
         """Fetch new state data for this light.
 
         This is the only method that should fetch new data for Home Assistant.
