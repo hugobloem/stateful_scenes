@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.3](https://github.com/hugobloem/stateful_scenes/compare/v1.6.2...v1.6.3) (2025-01-02)
+
+
+### 🐛 Bugfixes
+
+* Modify the integration to fully use HA async paradigm. ([#175](https://github.com/hugobloem/stateful_scenes/issues/175)) ([31d3dbc](https://github.com/hugobloem/stateful_scenes/commit/31d3dbcb20b4be751efe3f2ced809528b22400de))
+
 ## [1.6.2](https://github.com/hugobloem/stateful_scenes/compare/v1.6.1...v1.6.2) (2024-12-31)
 
 
