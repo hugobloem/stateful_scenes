@@ -28,6 +28,7 @@ PLATFORMS: list[Platform] = [
     Platform.SWITCH,
 ]
 
+
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
@@ -54,7 +55,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if is_hub and entry.data.get(CONF_ENABLE_DISCOVERY, False):
         discovery_manager = DiscoveryManager(hass, entry)
-        await discovery_manager.start_discovery()
+        await discovery_manager.async_start_discovery()
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

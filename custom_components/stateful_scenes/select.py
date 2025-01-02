@@ -73,7 +73,9 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
         self._cache: dict[str, bool | DeviceInfo] = {}
         self._attr_entity_category = EntityCategory.CONFIG
         self._restore_on_deactivate_state: str | None = None
-        self._off_scene_entity_id: str | None = None  # Variable to store the off scene entity ID
+        self._off_scene_entity_id: str | None = (
+            None  # Variable to store the off scene entity ID
+        )
 
     def _get_available_off_scenes(self) -> list[tuple[str, str]]:
         """Get list of available scenes with friendly names."""
@@ -168,9 +170,16 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
                 self._off_scene_entity_id = stored_entity_id
                 state = self.hass.states.get(stored_entity_id)
                 if state:
-                    self._attr_current_option = state.attributes.get("friendly_name", stored_entity_id)
+                    self._attr_current_option = state.attributes.get(
+                        "friendly_name", stored_entity_id
+                    )
             # Fall back to friendly name  if no stored entity_id for backward compatibility to 1.60
-            elif last_state.state not in [None, "unavailable", "unknown", DEFAULT_OFF_SCENE_ENTITY_ID]:
+            elif last_state.state not in [
+                None,
+                "unavailable",
+                "unknown",
+                DEFAULT_OFF_SCENE_ENTITY_ID,
+            ]:
                 restored_state = last_state.state
                 if not restored_state.startswith("scene."):
                     # Map friendly name to entity_id
@@ -210,7 +219,7 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
             suggested_area=self._scene.area_id,
         )
 
-    def select_option(self, option: str) -> None:
+    async def async_select_option(self, option: str) -> None:
         """Update the current selected option."""
         self._attr_current_option = option
 
@@ -220,8 +229,8 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
             # Map friendly name to entity_id
             self._off_scene_entity_id = self._entity_id_map.get(option)
 
-        self._scene.set_off_scene(self._off_scene_entity_id)
-        self.schedule_update_ha_state()
+        await self._scene.async_set_off_scene(self._off_scene_entity_id)
+        self.async_schedule_update_ha_state()
 
         _LOGGER.debug(
             "Selected off scene for %s: %s (entity_id: %s)",

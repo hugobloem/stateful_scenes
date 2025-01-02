@@ -98,7 +98,7 @@ class TransitionNumber(RestoreNumber):
             suggested_area=self._scene.area_id,
         )
 
-    def set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         self._scene.set_transition_time(value)
 
@@ -159,7 +159,7 @@ class DebounceTime(RestoreNumber):
             manufacturer=DEVICE_INFO_MANUFACTURER,
         )
 
-    def set_native_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         self._scene.set_debounce_time(value)
 
@@ -220,7 +220,7 @@ class Tolerance(RestoreNumber):
             manufacturer=DEVICE_INFO_MANUFACTURER,
         )
 
-    def set_native_value(self, value: int) -> None:
+    async def async_set_native_value(self, value: int) -> None:
         """Update the current value."""
         self._scene.set_number_tolerance(value)
 
