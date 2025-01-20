@@ -263,7 +263,7 @@ class Scene:
     @property
     def debounce_time(self) -> float:
         """Get the debounce time."""
-        return self._scene_evaluation_timer.transition_time
+        return self._debounce_time
 
     def set_debounce_time(self, debounce_time: float):
         """Set the debounce time."""
