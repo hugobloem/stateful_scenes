@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.4](https://github.com/hugobloem/stateful_scenes/compare/v1.6.3...v1.6.4) (2025-01-25)
+
+
+### 🐛 Bugfixes
+
+* debounce getter now returns correct value ([#181](https://github.com/hugobloem/stateful_scenes/issues/181)) ([f7a2aeb](https://github.com/hugobloem/stateful_scenes/commit/f7a2aeb2893d376b2336a7795877fe86243a7676))
+
 ## [1.6.3](https://github.com/hugobloem/stateful_scenes/compare/v1.6.2...v1.6.3) (2025-01-02)
 
 
