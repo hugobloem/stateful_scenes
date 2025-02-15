@@ -23,17 +23,17 @@ async def test_config_flow_options(hass: HomeAssistant) -> None:
     ]
 
     # Check discover flow can be started
-    discover_form_result = await hass.config_entries.flow.async_init(
+    internal_form_result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": "configure_internal_scenes"}
     )
-    assert discover_form_result["type"] is FlowResultType.FORM
-    assert discover_form_result["step_id"] == "configure_internal_scenes"
-    assert not discover_form_result["errors"]
+    assert internal_form_result["type"] is FlowResultType.FORM
+    assert internal_form_result["step_id"] == "configure_internal_scenes"
+    assert not internal_form_result["errors"]
 
     # Check manual flow can be started
-    manual_form_result = await hass.config_entries.flow.async_init(
+    external_form_result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": "select_external_scenes"}
     )
-    assert manual_form_result["type"] is FlowResultType.FORM
-    assert manual_form_result["step_id"] == "select_external_scenes"
-    assert manual_form_result["errors"]["base"] == "hub_not_found"
+    assert external_form_result["type"] is FlowResultType.FORM
+    assert external_form_result["step_id"] == "select_external_scenes"
+    assert external_form_result["errors"]["base"] == "hub_not_found"
