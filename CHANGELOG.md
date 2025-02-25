@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.6.4](https://github.com/hugobloem/stateful_scenes/compare/v1.6.3...v1.6.4) (2025-02-25)
+
+
+### 🐛 Bugfixes
+
+* debounce getter now returns correct value ([#181](https://github.com/hugobloem/stateful_scenes/issues/181)) ([f7a2aeb](https://github.com/hugobloem/stateful_scenes/commit/f7a2aeb2893d376b2336a7795877fe86243a7676))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update pip requirement from &lt;24.4,&gt;=24.1.1 to >=24.1.1,<25.1 ([#184](https://github.com/hugobloem/stateful_scenes/issues/184)) ([dcad11c](https://github.com/hugobloem/stateful_scenes/commit/dcad11c6f6f98abff6eca791fd594520dd85ab70))
+* Update Python interpreter path and streamline setup script ([#187](https://github.com/hugobloem/stateful_scenes/issues/187)) ([09c2d59](https://github.com/hugobloem/stateful_scenes/commit/09c2d59b23783c12a94e38d020b777fd42e1b95e))
+
 ## [1.6.3](https://github.com/hugobloem/stateful_scenes/compare/v1.6.2...v1.6.3) (2025-01-02)
 
 
