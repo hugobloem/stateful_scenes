@@ -2,8 +2,10 @@
 
 set -e
 
-cd "$(dirname "$0")/.."
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-python3 -m pip install uv
+# cd "$(dirname "$0")/.."
 
-python3 -m uv pip install --requirement requirements.txt
+uv venv
+source .venv/bin/activate
+uv pip install --requirement requirements.txt
