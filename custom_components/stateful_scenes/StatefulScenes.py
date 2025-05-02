@@ -124,6 +124,7 @@ class Scene:
         self._restore_on_deactivate = True
         self._debounce_time: float = 0.0
         self._ignore_unavailable = False
+        self._ignore_attributes = False
         self._off_scene_entity_id = None
         self._scene_evaluation_timer = SceneEvaluationTimer(
             hass, self._transition_time, self._debounce_time
@@ -288,6 +289,15 @@ class Scene:
         """Set the ignore unavailable flag."""
         self._ignore_unavailable = ignore_unavailable
 
+    @property
+    def ignore_attributes(self) -> bool:
+        """Get the ignore attributes flag."""
+        return self._ignore_attributes
+
+    def set_ignore_attributes(self, ignore_attributes):
+        """Set the ignore attributes flag."""
+        self._ignore_attributes = ignore_attributes
+
     async def async_initialize(self) -> None:
         """Initialize the scene and evaluate its initial state."""
         _LOGGER.debug("Initializing scene: %s", self.name)
@@ -424,6 +434,9 @@ class Scene:
         # Check attributes
         # If both desired and current states are "off", consider it a match regardless of attributes
         if new_state.state == "off" and self.entities[entity_id]["state"] == "off":
+            return True
+
+        if self.ignore_attributes:
             return True
 
         # Only check attributes if entity isn't "off"
