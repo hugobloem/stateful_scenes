@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.7.0](https://github.com/hugobloem/stateful_scenes/compare/v1.6.4...v1.7.0) (2025-05-02)
+
+
+### 🚀 Features
+
+* ignore attributes checking toggle ([#192](https://github.com/hugobloem/stateful_scenes/issues/192)) ([0d6e37e](https://github.com/hugobloem/stateful_scenes/commit/0d6e37ed3a86b7eb8a5f697299a410c53866013b))
+
+
+### 🐛 Bugfixes
+
+* convert synchronous methods to asynchronous in StatefulSceneOffSelect ([#200](https://github.com/hugobloem/stateful_scenes/issues/200)) ([a3784df](https://github.com/hugobloem/stateful_scenes/commit/a3784dfa1edf8fa3f01ef3d4cc342cc3efb4513e))
+* remove unnecessary await from async_all call ([#201](https://github.com/hugobloem/stateful_scenes/issues/201)) ([761f372](https://github.com/hugobloem/stateful_scenes/commit/761f3726b3d6297a09064baea3050ab0e0fd78df))
+
+
+### 🔨 Code Refactoring
+
+* simplify state initialization using dict.fromkeys ([#199](https://github.com/hugobloem/stateful_scenes/issues/199)) ([84c3f3c](https://github.com/hugobloem/stateful_scenes/commit/84c3f3c5db276ec5ea517e374f8ab2252e7a4404))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump astral-sh/setup-uv from 5 to 6 ([#196](https://github.com/hugobloem/stateful_scenes/issues/196)) ([f230eae](https://github.com/hugobloem/stateful_scenes/commit/f230eae06fe5d2c318ab574c2a08a0bd6f879249))
+* **deps:** update pip requirement from &lt;25.1,&gt;=24.1.1 to &gt;=24.1.1,&lt;25.2 ([#197](https://github.com/hugobloem/stateful_scenes/issues/197)) ([8974ebd](https://github.com/hugobloem/stateful_scenes/commit/8974ebd2a4df4dc00c693663aaeb2ece5685fef5))
+
 ## [1.6.4](https://github.com/hugobloem/stateful_scenes/compare/v1.6.3...v1.6.4) (2025-02-25)
 
 
