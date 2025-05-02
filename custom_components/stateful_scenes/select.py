@@ -77,7 +77,7 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
             None  # Variable to store the off scene entity ID
         )
 
-    def _get_available_off_scenes(self) -> list[tuple[str, str]]:
+    async def _async_get_available_off_scenes(self) -> list[tuple[str, str]]:
         """Get list of available scenes with friendly names."""
         scenes: list[tuple[str, str]] = []
 
@@ -95,7 +95,7 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
             hub_scenes: set[str] = (
                 set(self._hub.get_available_scenes()) if self._hub else set()
             )
-            states: list[State] = self._scene.hass.states.async_all("scene")
+            states: list[State] = await self._scene.hass.states.async_all("scene")
             for state in states:
                 if (
                     state.entity_id != self._scene.entity_id
@@ -131,7 +131,7 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
         }
 
     @callback
-    def async_update_restore_state(
+    async def async_update_restore_state(
         self, event: Event[EventStateChangedData] | None = None
     ) -> None:
         """Sync with the restore state toggle."""
@@ -146,7 +146,7 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
                     self._restore_on_deactivate_state,
                 )
 
-                scenes = self._get_available_off_scenes()
+                scenes = await self._async_get_available_off_scenes()
                 self._entity_id_map = {
                     friendly_name: entity_id for entity_id, friendly_name in scenes
                 }
