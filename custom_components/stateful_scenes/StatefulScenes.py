@@ -132,8 +132,8 @@ class Scene:
         self.callback = None
         self.callback_funcs = {}
         self.schedule_update = None
-        self.states = {entity_id: False for entity_id in self.entities}
-        self.restore_states = {entity_id: None for entity_id in self.entities}
+        self.states = dict.fromkeys(self.entities, False)
+        self.restore_states = dict.fromkeys(self.entities)
 
         if self.learn:
             self.learned = False
