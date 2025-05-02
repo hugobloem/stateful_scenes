@@ -95,7 +95,7 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
             hub_scenes: set[str] = (
                 set(self._hub.get_available_scenes()) if self._hub else set()
             )
-            states: list[State] = await self._scene.hass.states.async_all("scene")
+            states: list[State] = self._scene.hass.states.async_all("scene")
             for state in states:
                 if (
                     state.entity_id != self._scene.entity_id
