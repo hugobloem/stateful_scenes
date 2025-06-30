@@ -348,13 +348,13 @@ class Scene:
             new_state.state if new_state else None,
         )
 
-        # Store the old state
-        await self.async_store_entity_state(entity_id, old_state)
-
         # Check if this update is interesting
         if self.is_interesting_update(old_state, new_state):
             if not self._scene_evaluation_timer.is_active():
                 await self.async_evaluate_scene_state()
+
+                # Store the old state
+                await self.async_store_entity_state(entity_id, old_state)
 
     async def async_evaluate_scene_state(self):
         """Evaluate scene state immediately."""
