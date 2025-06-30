@@ -43,3 +43,9 @@ devices:
     name: +Switch 1
     initial_value: 'off'
     initial_availability: true
+  +Temperature 1:
+  - platform: sensor
+    name: +Temperature 1
+    unit_of_measurement: '°C'
+    initial_value: 20
+    class: 'temperature'

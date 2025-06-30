@@ -169,3 +169,20 @@
       friendly_name: Switch 1
       state: 'on'
   metadata: {}
+- id: '1735058327538'
+  name: Temperature Scene
+  entities:
+    climate.climate:
+      state: heat
+      hvac_modes:
+        - heat
+        - "off"
+      min_temp: 7
+      max_temp: 35
+      target_temp_step: 0.1
+      current_temperature: 20
+      temperature: 22.2
+      hvac_action: heating
+      friendly_name: Climate
+      supported_features: 385
+  metadata: {}

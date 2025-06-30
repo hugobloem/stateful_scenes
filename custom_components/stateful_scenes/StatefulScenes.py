@@ -686,12 +686,16 @@ class Hub:
         entity_id = scene_conf.get("entity_id", None)
         if entity_id is None:
             entity_id = get_entity_id_from_id(self.hass, scene_conf.get("id"))
+        if entity_id is None:
+            raise StatefulScenesYamlInvalid(
+                f"Cannot find entity_id for: {scene_conf['name']}"
+            )
 
         return {
             "name": scene_conf["name"],
             "id": scene_conf.get("id", entity_id),
             "icon": scene_conf.get(
-                "icon", get_icon_from_entity_id(self.hass, entity_id)
+                "icon", f"{get_icon_from_entity_id(self.hass, entity_id)}"
             ),
             "entity_id": entity_id,
             "area": area_name(self.hass, area_id(self.hass, entity_id)),
