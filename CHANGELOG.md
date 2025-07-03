@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/hugobloem/stateful_scenes/compare/v1.7.0...v1.7.1) (2025-07-03)
+
+
+### 🐛 Bugfixes
+
+* debounce not applied to storage of previous states ([61e3868](https://github.com/hugobloem/stateful_scenes/commit/61e3868ad10a8a30e932b96f4b162db9d4bfa725))
+
 ## [1.7.0](https://github.com/hugobloem/stateful_scenes/compare/v1.6.4...v1.7.0) (2025-05-02)
 
 
