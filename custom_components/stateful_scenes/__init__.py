@@ -21,6 +21,7 @@ from .const import (
 )
 from .discovery import DiscoveryManager
 from .StatefulScenes import Hub, Scene
+from .helpers import async_cleanup_orphaned_entities
 
 PLATFORMS: list[Platform] = [
     Platform.NUMBER,
@@ -44,14 +45,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         scene_confs = await load_scenes_file(entry.data[CONF_SCENE_PATH])
 
-        hass.data[DOMAIN][entry.entry_id] = Hub(
+        hub = Hub(
             hass=hass,
             scene_confs=scene_confs,
             number_tolerance=entry.data[CONF_NUMBER_TOLERANCE],
         )
+        hass.data[DOMAIN][entry.entry_id] = hub
+
+        # Clean up orphaned entities for removed scenes
+        valid_scene_ids = {scene.id for scene in hub.scenes}
+        await async_cleanup_orphaned_entities(hass, DOMAIN, entry.entry_id, valid_scene_ids)
 
     else:
-        hass.data[DOMAIN][entry.entry_id] = Scene(hass, entry.data)
+        scene = Scene(hass, entry.data)
+        hass.data[DOMAIN][entry.entry_id] = scene
+
+        # Clean up orphaned entities for single scene setup
+        valid_scene_ids = {scene.id}
+        await async_cleanup_orphaned_entities(hass, DOMAIN, entry.entry_id, valid_scene_ids)
 
     if is_hub and entry.data.get(CONF_ENABLE_DISCOVERY, False):
         discovery_manager = DiscoveryManager(hass, entry)
