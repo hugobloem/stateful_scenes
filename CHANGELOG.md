@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.2](https://github.com/hugobloem/stateful_scenes/compare/v1.7.1...v1.7.2) (2025-07-05)
+
+
+### 🐛 Bugfixes
+
+* cleanup orphaned entities and devices when scenes are removed ([#208](https://github.com/hugobloem/stateful_scenes/issues/208)) ([01e235d](https://github.com/hugobloem/stateful_scenes/commit/01e235dad560cc603f0786269a1e37cf9819c934))
+
+
+### 📝 Documentation
+
+* add ignore attributes and ignore unavailable descriptions ([#207](https://github.com/hugobloem/stateful_scenes/issues/207)) ([52de508](https://github.com/hugobloem/stateful_scenes/commit/52de508fa2741858b15565c5e94e1262a4616584))
+
 ## [1.7.1](https://github.com/hugobloem/stateful_scenes/compare/v1.7.0...v1.7.1) (2025-07-03)
 
 
