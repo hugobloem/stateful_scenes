@@ -42,7 +42,6 @@ You can set up Stateful Scenes to restore the state of the entities when you wan
 Furthermore, you can specify the default transition time for applying scenes. This will gradually change the lights of a scene to the specified state. Transition time does need to be supported by your lights.
 
 ### Debounce time
-
 After activating a scene by turning on a stateful scene switch, entities may need some time to achieve their desired states after the transition time elapses. When first turned on, the scene state switch will be assumed to be 'on'; the debounce time setting controls how long this integration will wait after observing a member entity state update event before reevaluating the entity state to determine if the scene is still active. If you're having issues with scenes immediately deactivating/reactivating, consider increasing this debounce time.
 
 This setting is measured in seconds, but sub-second values (e.g '0.1' for 100ms delay) can be provided such that the delay is not perceptible to humans viewing a dashboard, for example.
@@ -56,6 +55,9 @@ Note that while all entity states are supported only some entity attributes are 
 | `cover`        | `position`                               |
 | `media_player` | `volume_level`, `source`                 |
 | `fan`          | `direction`, `oscillating`, `percentage` |
+
+### Ignore attributes and ignore unavailable
+For some scenes devices may go unavailable or their attributes are not consistent with the scene state. In those cases you may wish to activate the ignore attributes and/or ignore unavailable switches. The former turns off attribute checking for the attributes in the table above and only checks the state of each entity. The latter ignores entities that are unavailable such as when they are unplugged.
 
 
 ## Scene configurations
