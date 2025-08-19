@@ -420,20 +420,30 @@ class Scene:
         if self.ignore_unavailable and new_state.state == "unavailable":
             return None
 
+        # Skip comparison if desired state is None (treat as "don't care")
+        desired_state = self.entities[entity_id]["state"]
+        if desired_state is None:
+            _LOGGER.debug(
+                "[%s] Desired state is None for %s, treating as 'don't care'",
+                self.name,
+                entity_id,
+            )
+            return None
+
         # Check state
-        if not self.compare_values(self.entities[entity_id]["state"], new_state.state):
+        if not self.compare_values(desired_state, new_state.state):
             _LOGGER.debug(
                 "[%s] state not matching: %s: wanted=%s got=%s.",
                 self.name,
                 entity_id,
-                self.entities[entity_id]["state"],
+                desired_state,
                 new_state.state,
             )
             return False
 
         # Check attributes
         # If both desired and current states are "off", consider it a match regardless of attributes
-        if new_state.state == "off" and self.entities[entity_id]["state"] == "off":
+        if new_state.state == "off" and desired_state == "off":
             return True
 
         if self.ignore_attributes:
@@ -448,6 +458,10 @@ class Scene:
                     or attribute not in entity_attrs
                 ):
                     continue
+
+                if self.entities[entity_id][attribute] is None:
+                    continue
+
                 if not self.compare_values(
                     self.entities[entity_id][attribute], entity_attrs[attribute]
                 ):
@@ -557,6 +571,15 @@ class Scene:
 
     def compare_values(self, value1, value2):
         """Compare two values."""
+        # Handle None values gracefully
+        if value1 is None and value2 is None:
+            return True
+        if value1 is None or value2 is None:
+            return False
+
+        if isinstance(value1, str) and isinstance(value2, str):
+            return value1.lower() == value2.lower()
+
         if isinstance(value1, dict) and isinstance(value2, dict):
             return self.compare_dicts(value1, value2)
 
