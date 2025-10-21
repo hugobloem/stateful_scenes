@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.4](https://github.com/hugobloem/stateful_scenes/compare/v1.7.3...v1.7.4) (2025-10-21)
+
+
+### 🐛 Bugfixes
+
+* YAML boolean state parsing issue ([#220](https://github.com/hugobloem/stateful_scenes/issues/220)) ([153f477](https://github.com/hugobloem/stateful_scenes/commit/153f477285ca2d15928ebb6e8ef645d14ce4e5b9))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump astral-sh/setup-uv from 6 to 7 ([#218](https://github.com/hugobloem/stateful_scenes/issues/218)) ([4a45195](https://github.com/hugobloem/stateful_scenes/commit/4a45195011908c3dd98240656db7827309d26854))
+
 ## [1.7.3](https://github.com/hugobloem/stateful_scenes/compare/v1.7.2...v1.7.3) (2025-08-19)
 
 
