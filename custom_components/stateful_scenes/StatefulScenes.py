@@ -710,7 +710,11 @@ class Hub:
         entities = {}
         for entity_id, scene_attributes in scene_conf["entities"].items():
             domain = entity_id.split(".")[0]
-            attributes = {"state": scene_attributes["state"]}
+            # Convert boolean states to strings (YAML parses 'on'/'off' as bool)
+            state = scene_attributes["state"]
+            if isinstance(state, bool):
+                state = "on" if state else "off"
+            attributes = {"state": state}
 
             if domain in ATTRIBUTES_TO_CHECK:
                 for attribute, value in scene_attributes.items():
