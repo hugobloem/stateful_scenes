@@ -33,6 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def area_name(hass: HomeAssistant, entity_id: str) -> str:
+    """Get area name from entity_id."""
     area_reg = ar.async_get(hass)
     if area := area_reg.async_get_area(resolve_area_id(hass, entity_id)):
         return area.name
@@ -772,5 +773,6 @@ class Hub:
         return next(
             (scene for scene in self.scenes if scene.entity_id == scene_id), None
         )
+
 
 
