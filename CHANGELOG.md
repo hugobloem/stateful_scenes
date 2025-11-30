@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.7.5](https://github.com/hugobloem/stateful_scenes/compare/v1.7.4...v1.7.5) (2025-11-30)
+
+
+### 🐛 Bugfixes
+
+* import issue 2025.12 ([#223](https://github.com/hugobloem/stateful_scenes/issues/223)) ([433855f](https://github.com/hugobloem/stateful_scenes/commit/433855f703d43e6d350437b2fe8f271036b7ea7e))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** bump actions/checkout from 5 to 6 ([#222](https://github.com/hugobloem/stateful_scenes/issues/222)) ([6ee180b](https://github.com/hugobloem/stateful_scenes/commit/6ee180bddee4652e1284901f7c11815cf311a189))
+* **deps:** update pip requirement from &lt;25.3,&gt;=24.1.1 to &gt;=24.1.1,&lt;25.4 ([#221](https://github.com/hugobloem/stateful_scenes/issues/221)) ([524ef9c](https://github.com/hugobloem/stateful_scenes/commit/524ef9c5f08c6734a6e04d556c78f8c185600381))
+
 ## [1.7.4](https://github.com/hugobloem/stateful_scenes/compare/v1.7.3...v1.7.4) (2025-10-21)
 
 
