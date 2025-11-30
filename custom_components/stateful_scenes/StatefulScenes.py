@@ -4,10 +4,12 @@ import logging
 from typing import Any
 
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import (
+    area_registry as ar,
+    entity_registry as er
+)
 from homeassistant.helpers.event import async_call_later
-from homeassistant.helpers.template import area_id, area_name
-
+from homeassistant.helpers.template.helpers import resolve_area_id
 from .const import (
     ATTRIBUTES_TO_CHECK,
     CONF_SCENE_AREA,
@@ -28,6 +30,13 @@ from .helpers import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def area_name(hass: HomeAssistant, entity_id: str) -> str:
+    """Get area name from entity_id."""
+    area_reg = ar.async_get(hass)
+    if area := area_reg.async_get_area(resolve_area_id(hass, entity_id)):
+        return area.name
 
 
 def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
@@ -734,7 +743,7 @@ class Hub:
                 "icon", get_icon_from_entity_id(self.hass, entity_id)
             ),
             "entity_id": entity_id,
-            "area": area_name(self.hass, area_id(self.hass, entity_id)),
+            "area": area_name(self.hass, entity_id),
             "learn": scene_conf.get("learn", False),
             "entities": entities,
             "number_tolerance": scene_conf.get(
@@ -749,7 +758,7 @@ class Hub:
             "id": get_id_from_entity_id(self.hass, entity_id),
             "icon": get_icon_from_entity_id(self.hass, entity_id),
             "entity_id": entity_id,
-            "area": area_name(self.hass, area_id(self.hass, entity_id)),
+            "area": area_name(self.hass, entity_id),
             "learn": True,
             "entities": entities,
         }
@@ -764,3 +773,6 @@ class Hub:
         return next(
             (scene for scene in self.scenes if scene.entity_id == scene_id), None
         )
+
+
+
