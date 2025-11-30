@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.6](https://github.com/hugobloem/stateful_scenes/compare/v1.7.5...v1.7.6) (2025-11-30)
+
+
+### 🔧 Miscellaneous Chores
+
+* resolve_area_id not available before 2025.12.0 ([#225](https://github.com/hugobloem/stateful_scenes/issues/225)) ([fa04147](https://github.com/hugobloem/stateful_scenes/commit/fa04147669d5b58137c2f8a7e69d0fe6fb18b83a))
+
 ## [1.7.5](https://github.com/hugobloem/stateful_scenes/compare/v1.7.4...v1.7.5) (2025-11-30)
 
 
