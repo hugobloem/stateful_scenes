@@ -2,5 +2,7 @@
     "name": "Stateful Scenes",
     "render_readme": true,
     "zip_release": true,
-    "filename": "stateful_scenes.zip"
+    "filename": "stateful_scenes.zip",
+    "homeassistant": "2025.12.0"
 }
+
