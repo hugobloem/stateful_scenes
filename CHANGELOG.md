@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.7](https://github.com/hugobloem/stateful_scenes/compare/v1.7.6...v1.7.7) (2025-12-01)
+
+
+### 🐛 Bugfixes
+
+* Add Home Assistant version to hacs.json ([#228](https://github.com/hugobloem/stateful_scenes/issues/228)) ([53ac523](https://github.com/hugobloem/stateful_scenes/commit/53ac523f7d5d2fcad4c5dc6df04a213def468cbe))
+
 ## [1.7.6](https://github.com/hugobloem/stateful_scenes/compare/v1.7.5...v1.7.6) (2025-11-30)
 
 
