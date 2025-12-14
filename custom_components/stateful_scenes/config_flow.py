@@ -160,10 +160,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(unique_id)
         self._abort_if_unique_id_configured()
 
+        scene_name = get_name_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID]) or "Unknown"
+        scene_area = get_area_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID]) or "No Area"
         self.context["title_placeholders"] = {
-            "name": f"{get_name_from_entity_id(
-                self.hass, discovery_info[CONF_SCENE_ENTITY_ID]
-            )} - {get_area_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID])}"
+            "name": f"{scene_name} - {scene_area}"
         }
 
         return await self.async_step_configure_external_scene_entities()
@@ -247,7 +247,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             description_placeholders={
-                "scene_name": get_name_from_entity_id(self.hass, entity_id)
+                "scene_name": get_name_from_entity_id(self.hass, entity_id) or "Unknown Scene"
             },
             errors=errors,
         )
@@ -299,7 +299,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             description_placeholders={
-                "entity_name": get_name_from_entity_id(self.hass, entity_id),
+                "entity_name": get_name_from_entity_id(self.hass, entity_id) or "Unknown Entity",
             },
             errors=errors,
         )
