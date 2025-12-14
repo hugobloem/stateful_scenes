@@ -32,11 +32,14 @@ from .helpers import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def area_name(hass: HomeAssistant, entity_id: str) -> str:
+def area_name(hass: HomeAssistant, entity_id: str | None) -> str | None:
     """Get area name from entity_id."""
+    if entity_id is None:
+        return None
     area_reg = ar.async_get(hass)
     if area := area_reg.async_get_area(resolve_area_id(hass, entity_id)):
         return area.name
+    return None
 
 
 def get_entity_id_from_id(hass: HomeAssistant, id: str) -> str:
@@ -728,7 +731,10 @@ class Hub:
             if domain in ATTRIBUTES_TO_CHECK:
                 for attribute, value in scene_attributes.items():
                     if attribute in ATTRIBUTES_TO_CHECK.get(domain):
-                        attributes[attribute] = value
+                        # Filter out None values from empty YAML fields
+                        # Note: None state values are preserved for "don't care" semantics
+                        if value is not None:
+                            attributes[attribute] = value
 
             entities[entity_id] = attributes
 
