@@ -99,6 +99,7 @@ async def load_scenes_file(hass: HomeAssistant, scene_path: str) -> list:
     Raises:
         StatefulScenesYamlNotFound: If file path is invalid or file not found
         StatefulScenesYamlInvalid: If YAML parsing fails or no scenes found
+
     """
     # Validate input
     if scene_path is None:

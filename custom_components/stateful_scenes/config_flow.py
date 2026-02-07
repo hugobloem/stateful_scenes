@@ -68,6 +68,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         Returns:
             Tuple of (detected_path, warning_message)
             warning_message is None if file was found successfully
+
         """
         # Try common scene file locations
         candidates = [
