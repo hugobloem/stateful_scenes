@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.8](https://github.com/hugobloem/stateful_scenes/compare/v1.7.7...v1.7.8) (2026-02-07)
+
+
+### 🐛 Bugfixes
+
+* Handle None values from empty YAML fields to prevent AttributeError (fixes [#212](https://github.com/hugobloem/stateful_scenes/issues/212)) ([#231](https://github.com/hugobloem/stateful_scenes/issues/231)) ([cb26807](https://github.com/hugobloem/stateful_scenes/commit/cb26807266e8d6125250f24deb434704c8fd7247))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps:** update pip requirement from &lt;25.4,&gt;=24.1.1 to &gt;=24.1.1,&lt;26.1 ([#234](https://github.com/hugobloem/stateful_scenes/issues/234)) ([6b1ed00](https://github.com/hugobloem/stateful_scenes/commit/6b1ed00ad87273d358ebe198bc13825229702b97))
+
 ## [1.7.7](https://github.com/hugobloem/stateful_scenes/compare/v1.7.6...v1.7.7) (2025-12-01)
 
 
