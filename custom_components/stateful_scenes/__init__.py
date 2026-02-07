@@ -43,7 +43,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if entry.data.get(CONF_SCENE_PATH, None) is None:
             raise StatefulScenesYamlNotFound("Scenes file not specified.")
 
-        scene_confs = await load_scenes_file(entry.data[CONF_SCENE_PATH])
+        scene_confs = await load_scenes_file(hass, entry.data[CONF_SCENE_PATH])
 
         hub = Hub(
             hass=hass,
@@ -86,21 +86,61 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     await async_setup_entry(hass, entry)
 
 
-async def load_scenes_file(scene_path) -> list:
-    """Load scenes from yaml file."""
-    # check if file exists
+async def load_scenes_file(hass: HomeAssistant, scene_path: str) -> list:
+    """Load scenes from yaml file.
+
+    Args:
+        hass: Home Assistant instance for path resolution
+        scene_path: Path to scenes file (relative to config dir or absolute)
+
+    Returns:
+        List of scene configurations
+
+    Raises:
+        StatefulScenesYamlNotFound: If file path is invalid or file not found
+        StatefulScenesYamlInvalid: If YAML parsing fails or no scenes found
+
+    """
+    # Validate input
     if scene_path is None:
         raise StatefulScenesYamlNotFound("Scenes file not specified.")
-    if not os.path.exists(scene_path):
-        raise StatefulScenesYamlNotFound("No scenes file " + scene_path)
+
+    if not scene_path or not scene_path.strip():
+        raise StatefulScenesYamlNotFound("Scenes file path is empty.")
+
+    # Resolve relative paths against config directory
+    # This allows users to use "scenes.yaml" instead of "/config/scenes.yaml"
+    resolved_path = hass.config.path(scene_path)
+
+    # Check if file exists
+    if not os.path.exists(resolved_path):
+        raise StatefulScenesYamlNotFound(
+            f"No scenes file found at {resolved_path} "
+            f"(from input path: {scene_path})"
+        )
+
+    # Verify it's a file, not a directory
+    if not os.path.isfile(resolved_path):
+        raise StatefulScenesYamlNotFound(
+            f"Path {resolved_path} is not a file"
+        )
 
     try:
-        async with aiofiles.open(scene_path, encoding="utf-8") as f:
+        async with aiofiles.open(resolved_path, encoding="utf-8") as f:
             scenes_confs = yaml.load(await f.read(), Loader=yaml.FullLoader)
     except OSError as err:
-        raise StatefulScenesYamlInvalid("No scenes found in " + scene_path) from err
+        raise StatefulScenesYamlInvalid(
+            f"Error reading scenes file {resolved_path}: {err}"
+        ) from err
+    except yaml.YAMLError as err:
+        raise StatefulScenesYamlInvalid(
+            f"Invalid YAML in {resolved_path}: {err}"
+        ) from err
 
     if not scenes_confs or not isinstance(scenes_confs, list):
-        raise StatefulScenesYamlInvalid("No scenes found in " + scene_path)
+        raise StatefulScenesYamlInvalid(
+            f"No scenes found in {resolved_path}. "
+            "Ensure the file contains a list of scenes."
+        )
 
     return scenes_confs

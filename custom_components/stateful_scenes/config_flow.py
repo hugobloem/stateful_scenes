@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -61,6 +62,41 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self.configuration = {}
         self.curr_external_scene = 0
 
+    def _detect_scenes_path(self) -> tuple[str, str | None]:
+        """Detect the scenes.yaml path and return path and optional warning.
+
+        Returns:
+            Tuple of (detected_path, warning_message)
+            warning_message is None if file was found successfully
+
+        """
+        # Try common scene file locations
+        candidates = [
+            "scenes.yaml",
+            "scenes.yml",
+            "config/scenes.yaml",
+            "config/scenes.yml",
+        ]
+
+        for candidate in candidates:
+            resolved_path = self.hass.config.path(candidate)
+            if os.path.isfile(resolved_path):
+                _LOGGER.debug("Auto-detected scenes file at: %s", resolved_path)
+                return (candidate, None)
+
+        # No file found - return default with warning
+        warning = (
+            "Could not auto-detect scenes.yaml location. "
+            "Please verify the path or use an absolute path if your scenes file "
+            "is in a custom location."
+        )
+        _LOGGER.info(
+            "Could not auto-detect scenes.yaml, using default '%s'. "
+            "User may need to adjust path during configuration.",
+            DEFAULT_SCENE_PATH
+        )
+        return (DEFAULT_SCENE_PATH, warning)
+
     async def async_step_user(self, user_input: dict | None = None) -> dict:
         """Handle a flow initialized by the user."""
         return self.async_show_menu(
@@ -80,7 +116,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                scene_confs = await load_scenes_file(user_input[CONF_SCENE_PATH])
+                scene_confs = await load_scenes_file(self.hass, user_input[CONF_SCENE_PATH])
                 _ = Hub(
                     hass=self.hass,
                     scene_confs=scene_confs,
@@ -103,15 +139,30 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data=self.configuration,
                 )
 
+        # Auto-detect scenes.yaml path
+        detected_path, path_warning = self._detect_scenes_path()
+
+        # Build description with warning if path not found
+        description_placeholders = {}
+        if path_warning:
+            description_placeholders["path_warning"] = path_warning
+
         return self.async_show_form(
             step_id="configure_internal_scenes",
             last_step=True,
+            description_placeholders=description_placeholders if path_warning else None,
             data_schema=vol.Schema(
                 {
                     vol.Optional(
-                        CONF_SCENE_PATH, default=DEFAULT_SCENE_PATH
+                        CONF_SCENE_PATH,
+                        default=detected_path,
+                        description={
+                            "suggested_value": detected_path
+                        }
                     ): selector.TextSelector(
-                        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                        )
                     ),
                     vol.Optional(
                         CONF_NUMBER_TOLERANCE, default=DEFAULT_NUMBER_TOLERANCE
@@ -160,10 +211,10 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(unique_id)
         self._abort_if_unique_id_configured()
 
+        scene_name = get_name_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID]) or "Unknown"
+        scene_area = get_area_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID]) or "No Area"
         self.context["title_placeholders"] = {
-            "name": f"{get_name_from_entity_id(
-                self.hass, discovery_info[CONF_SCENE_ENTITY_ID]
-            )} - {get_area_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID])}"
+            "name": f"{scene_name} - {scene_area}"
         }
 
         return await self.async_step_configure_external_scene_entities()
@@ -247,7 +298,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             description_placeholders={
-                "scene_name": get_name_from_entity_id(self.hass, entity_id)
+                "scene_name": get_name_from_entity_id(self.hass, entity_id) or "Unknown Scene"
             },
             errors=errors,
         )
@@ -299,7 +350,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             description_placeholders={
-                "entity_name": get_name_from_entity_id(self.hass, entity_id),
+                "entity_name": get_name_from_entity_id(self.hass, entity_id) or "Unknown Entity",
             },
             errors=errors,
         )
