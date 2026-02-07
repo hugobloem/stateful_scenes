@@ -161,7 +161,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
-                            placeholder=detected_path
                         )
                     ),
                     vol.Optional(
