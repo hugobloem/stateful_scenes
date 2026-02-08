@@ -7,12 +7,16 @@ from homeassistant.helpers.template import state_attr
 
 _LOGGER = logging.getLogger(__name__)
 
+
 def get_id_from_entity_id(hass: HomeAssistant, entity_id: str | None) -> str | None:
     """Get scene id from entity_id."""
     if entity_id is None:
         return None
     er = entity_registry.async_get(hass)
-    return entity_registry.async_resolve_entity_id(er, entity_id)
+    # Check if entity exists in registry
+    if er.async_get(entity_id) is not None:
+        return entity_registry.async_resolve_entity_id(er, entity_id)
+    return None
 
 
 def get_name_from_entity_id(hass: HomeAssistant, entity_id: str | None) -> str | None:
@@ -52,13 +56,18 @@ def _extract_scene_id_from_unique_id(unique_id: str) -> str | None:
 
     # Check for suffixes and remove them
     suffixes = [
-        "_restore_on_deactivate", "_ignore_unavailable", "_ignore_attributes",
-        "_transition_time", "_debounce_time", "_tolerance", "_off_scene"
+        "_restore_on_deactivate",
+        "_ignore_unavailable",
+        "_ignore_attributes",
+        "_transition_time",
+        "_debounce_time",
+        "_tolerance",
+        "_off_scene",
     ]
 
     for suffix in suffixes:
         if unique_id.endswith(suffix):
-            return unique_id[:-len(suffix)]
+            return unique_id[: -len(suffix)]
 
     return None
 
@@ -68,7 +77,9 @@ def _get_device_entities(er: entity_registry.EntityRegistry, device_id: str) -> 
     return [entity for entity in er.entities.values() if entity.device_id == device_id]
 
 
-async def async_cleanup_orphaned_entities(hass: HomeAssistant, domain: str, entry_id: str, valid_scene_ids: set[str]) -> None:
+async def async_cleanup_orphaned_entities(
+    hass: HomeAssistant, domain: str, entry_id: str, valid_scene_ids: set[str]
+) -> None:
     """Remove orphaned stateful scene entities and devices that no longer have corresponding scenes."""
     er = entity_registry.async_get(hass)
     dr = device_registry.async_get(hass)
@@ -78,14 +89,22 @@ async def async_cleanup_orphaned_entities(hass: HomeAssistant, domain: str, entr
     orphaned_devices = set()
 
     for entity_id, entity in er.entities.items():
-        if entity.platform == domain and entity.config_entry_id == entry_id and entity.unique_id:
+        if (
+            entity.platform == domain
+            and entity.config_entry_id == entry_id
+            and entity.unique_id
+        ):
             scene_id = _extract_scene_id_from_unique_id(entity.unique_id)
 
             if scene_id and scene_id not in valid_scene_ids:
                 entities_to_remove.append(entity_id)
                 if entity.device_id:
                     orphaned_devices.add(entity.device_id)
-                _LOGGER.info("Marking orphaned entity for removal: %s (scene_id: %s)", entity_id, scene_id)
+                _LOGGER.info(
+                    "Marking orphaned entity for removal: %s (scene_id: %s)",
+                    entity_id,
+                    scene_id,
+                )
 
     # Remove orphaned entities
     for entity_id in entities_to_remove:
@@ -97,7 +116,9 @@ async def async_cleanup_orphaned_entities(hass: HomeAssistant, domain: str, entr
 
     # Add all devices belonging to this integration that have no entities
     for device_id, device in dr.devices.items():
-        if entry_id in device.config_entries and not _get_device_entities(er, device_id):
+        if entry_id in device.config_entries and not _get_device_entities(
+            er, device_id
+        ):
             devices_to_check.add(device_id)
 
     # Remove devices with no entities
@@ -105,5 +126,7 @@ async def async_cleanup_orphaned_entities(hass: HomeAssistant, domain: str, entr
         if not _get_device_entities(er, device_id):
             device = dr.devices.get(device_id)
             device_name = device.name if device else "Unknown"
-            _LOGGER.info("Removing orphaned device: %s (name: %s)", device_id, device_name)
+            _LOGGER.info(
+                "Removing orphaned device: %s (name: %s)", device_id, device_name
+            )
             dr.async_remove_device(device_id)
