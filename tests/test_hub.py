@@ -17,13 +17,9 @@ from .const import MOCK_SCENE_CONFIG_1, MOCK_SCENE_CONFIG_2
 class TestHub:
     """Test the Hub class."""
 
-    async def test_hub_initialization(
-        self, mock_hass: HomeAssistant, mock_scenes_data
-    ):
+    async def test_hub_initialization(self, mock_hass: HomeAssistant, mock_scenes_data):
         """Test hub initialization with scene configurations."""
-        hub = Hub(
-            hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1
-        )
+        hub = Hub(hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1)
 
         assert hub.number_tolerance == 1
         assert len(hub.scenes) == 2
@@ -34,9 +30,7 @@ class TestHub:
         self, mock_hass: HomeAssistant, mock_scenes_data
     ):
         """Test hub initialization with custom tolerance."""
-        hub = Hub(
-            hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=5
-        )
+        hub = Hub(hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=5)
 
         assert hub.number_tolerance == 5
         # Scenes should inherit hub tolerance if not specified
@@ -81,9 +75,7 @@ class TestHub:
         with pytest.raises(StatefulScenesYamlInvalid, match="Scene is missing id"):
             hub.validate_scene(invalid_config)
 
-    async def test_validate_scene_missing_entity_state(
-        self, mock_hass: HomeAssistant
-    ):
+    async def test_validate_scene_missing_entity_state(self, mock_hass: HomeAssistant):
         """Test scene validation with missing entity state."""
         hub = Hub(hass=mock_hass, scene_confs=[], number_tolerance=1)
 
@@ -241,7 +233,7 @@ class TestHub:
         # Scene tolerance should override hub tolerance
         assert extracted["number_tolerance"] == 10
 
-    async def test_prepare_external_scene(self, mock_hass: HomeAssistant):
+    def test_prepare_external_scene(self, mock_hass: HomeAssistant):
         """Test preparing external scene configuration."""
         hub = Hub(hass=mock_hass, scene_confs=[], number_tolerance=1)
 
@@ -262,9 +254,7 @@ class TestHub:
         self, mock_hass: HomeAssistant, mock_scenes_data
     ):
         """Test getting list of available scenes."""
-        hub = Hub(
-            hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1
-        )
+        hub = Hub(hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1)
 
         available_scenes = hub.get_available_scenes()
 
@@ -276,9 +266,7 @@ class TestHub:
         self, mock_hass: HomeAssistant, mock_scenes_data
     ):
         """Test getting a scene by entity ID."""
-        hub = Hub(
-            hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1
-        )
+        hub = Hub(hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1)
 
         scene = hub.get_scene("scene.test_scene_1")
 
@@ -290,9 +278,7 @@ class TestHub:
         self, mock_hass: HomeAssistant, mock_scenes_data
     ):
         """Test getting a scene that doesn't exist."""
-        hub = Hub(
-            hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1
-        )
+        hub = Hub(hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1)
 
         scene = hub.get_scene("scene.nonexistent")
 
@@ -302,9 +288,7 @@ class TestHub:
         self, mock_hass: HomeAssistant, mock_scenes_data
     ):
         """Test hub manages multiple scenes correctly."""
-        hub = Hub(
-            hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1
-        )
+        hub = Hub(hass=mock_hass, scene_confs=mock_scenes_data, number_tolerance=1)
 
         # Verify all scenes are created
         assert len(hub.scenes) == 2
@@ -326,9 +310,7 @@ class TestHub:
         assert len(hub.scene_confs) == 0
         assert hub.get_available_scenes() == []
 
-    async def test_hub_scenes_inherit_tolerance(
-        self, mock_hass: HomeAssistant
-    ):
+    async def test_hub_scenes_inherit_tolerance(self, mock_hass: HomeAssistant):
         """Test that scenes without specific tolerance inherit from hub."""
         scene_conf = {
             "id": "test_scene",
@@ -337,9 +319,7 @@ class TestHub:
             # No number_tolerance specified
         }
 
-        hub = Hub(
-            hass=mock_hass, scene_confs=[scene_conf], number_tolerance=8
-        )
+        hub = Hub(hass=mock_hass, scene_confs=[scene_conf], number_tolerance=8)
 
         scene = hub.scenes[0]
         assert scene.number_tolerance == 8  # Should inherit from hub

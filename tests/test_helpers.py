@@ -33,14 +33,14 @@ class TestHelperFunctions:
         entry = registry.async_get_or_create(
             "scene",
             "homeassistant",
-            "test_scene_1",
-            suggested_object_id="test_scene_1",
+            "test_scene",
+            suggested_object_id="test_scene",
         )
 
-        result = get_id_from_entity_id(mock_hass, "scene.test_scene_1")
+        result = get_id_from_entity_id(mock_hass, "scene.test_scene")
 
         # async_resolve_entity_id returns the entity_id itself
-        assert result == "scene.test_scene_1"
+        assert result == "scene.test_scene"
 
     async def test_get_id_from_entity_id_none(self, mock_hass: HomeAssistant):
         """Test getting ID from None entity_id."""
@@ -69,9 +69,7 @@ class TestHelperFunctions:
         result = get_name_from_entity_id(mock_hass, None)
         assert result is None
 
-    async def test_get_name_from_entity_id_no_attribute(
-        self, mock_hass: HomeAssistant
-    ):
+    async def test_get_name_from_entity_id_no_attribute(self, mock_hass: HomeAssistant):
         """Test getting name when friendly_name attribute is missing."""
         mock_hass.states.async_set("scene.test_scene", "scenestate", {})
 
@@ -94,18 +92,14 @@ class TestHelperFunctions:
         result = get_icon_from_entity_id(mock_hass, None)
         assert result is None
 
-    async def test_get_icon_from_entity_id_no_attribute(
-        self, mock_hass: HomeAssistant
-    ):
+    async def test_get_icon_from_entity_id_no_attribute(self, mock_hass: HomeAssistant):
         """Test getting icon when icon attribute is missing."""
         mock_hass.states.async_set("scene.test_scene", "scenestate", {})
 
         result = get_icon_from_entity_id(mock_hass, "scene.test_scene")
         assert result is None
 
-    async def test_get_area_from_entity_id_entity_area(
-        self, mock_hass: HomeAssistant
-    ):
+    async def test_get_area_from_entity_id_entity_area(self, mock_hass: HomeAssistant):
         """Test getting area from entity that has area assigned."""
         # Create area
         area_reg = ar.async_get(mock_hass)
@@ -113,21 +107,27 @@ class TestHelperFunctions:
 
         # Create entity with area
         entity_reg = er.async_get(mock_hass)
-        entity_reg.async_get_or_create(
+        entity = entity_reg.async_get_or_create(
             "scene",
             "homeassistant",
             "test_scene",
             suggested_object_id="test_scene",
-            area_id=area.id,
         )
+        # Update entity to set area_id
+        entity_reg.async_update_entity(entity.entity_id, area_id=area.id)
 
         result = get_area_from_entity_id(mock_hass, "scene.test_scene")
         assert result == "Living Room"
 
-    async def test_get_area_from_entity_id_device_area(
-        self, mock_hass: HomeAssistant
-    ):
+    async def test_get_area_from_entity_id_device_area(self, mock_hass: HomeAssistant):
         """Test getting area from entity's device when entity has no area."""
+        # Create config entry for device
+        config_entry = MockConfigEntry(
+            domain="test",
+            entry_id="test_entry",
+        )
+        config_entry.add_to_hass(mock_hass)
+
         # Create area
         area_reg = ar.async_get(mock_hass)
         area = area_reg.async_create("Kitchen")
@@ -135,10 +135,11 @@ class TestHelperFunctions:
         # Create device with area
         device_reg = dr.async_get(mock_hass)
         device = device_reg.async_get_or_create(
-            config_entry_id="test_entry",
+            config_entry_id=config_entry.entry_id,
             identifiers={("test", "device_1")},
-            area_id=area.id,
         )
+        # Update device to set area_id
+        device_reg.async_update_device(device.id, area_id=area.id)
 
         # Create entity with device but no area
         entity_reg = er.async_get(mock_hass)
@@ -187,9 +188,7 @@ class TestExtractSceneIdFromUniqueId:
 
     def test_extract_scene_id_with_restore_suffix(self):
         """Test extracting scene ID with _restore_on_deactivate suffix."""
-        result = _extract_scene_id_from_unique_id(
-            "test_scene_restore_on_deactivate"
-        )
+        result = _extract_scene_id_from_unique_id("test_scene_restore_on_deactivate")
         assert result == "test_scene"
 
     def test_extract_scene_id_with_ignore_unavailable_suffix(self):
@@ -240,10 +239,17 @@ class TestGetDeviceEntities:
 
     async def test_get_device_entities(self, mock_hass: HomeAssistant):
         """Test getting entities for a device."""
+        # Create config entry
+        config_entry = MockConfigEntry(
+            domain="test",
+            entry_id="test_entry",
+        )
+        config_entry.add_to_hass(mock_hass)
+
         # Create device
         device_reg = dr.async_get(mock_hass)
         device = device_reg.async_get_or_create(
-            config_entry_id="test_entry",
+            config_entry_id=config_entry.entry_id,
             identifiers={("test", "device_1")},
         )
 
@@ -266,7 +272,7 @@ class TestGetDeviceEntities:
 
         # Create entity for a different device
         other_device = device_reg.async_get_or_create(
-            config_entry_id="test_entry",
+            config_entry_id=config_entry.entry_id,
             identifiers={("test", "device_2")},
         )
         entity_reg.async_get_or_create(
@@ -287,9 +293,16 @@ class TestGetDeviceEntities:
 
     async def test_get_device_entities_no_entities(self, mock_hass: HomeAssistant):
         """Test getting entities for device with no entities."""
+        # Create config entry
+        config_entry = MockConfigEntry(
+            domain="test",
+            entry_id="test_entry",
+        )
+        config_entry.add_to_hass(mock_hass)
+
         device_reg = dr.async_get(mock_hass)
         device = device_reg.async_get_or_create(
-            config_entry_id="test_entry",
+            config_entry_id=config_entry.entry_id,
             identifiers={("test", "device_1")},
         )
 
