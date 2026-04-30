@@ -2,6 +2,16 @@
 name = "stateful-scenes"
 version = "1.7.8"
 requires-python = ">=3.14"
+dependencies = ["homeassistant>=2025.12.0", "aiofiles"]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-homeassistant-custom-component",
+    "pytest-cov",
+    "ruff>=0.3",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
