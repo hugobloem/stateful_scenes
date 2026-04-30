@@ -18,13 +18,11 @@ jobs:
 
     - name: "Set up Python"
       uses: astral-sh/setup-uv@v7
-      with:
-        enable-cache: true
 
     - name: "Install latest HA and test plugin (including betas)"
       run: | 
         uv sync
-        uv pip install --prerelease=allow --upgrade homeassistant pytest-homeassistant-custom-component
+        uv pip install --upgrade pytest-homeassistant-custom-component
 
 
     - name: "Test"
