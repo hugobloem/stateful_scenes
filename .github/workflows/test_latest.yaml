@@ -22,7 +22,10 @@ jobs:
         enable-cache: true
 
     - name: "Install latest HA and test plugin (including betas)"
-      run: uv sync --prerelease=allow --upgrade-package homeassistant --upgrade-package pytest-homeassistant-custom-component
+      run: | 
+        uv sync
+        uv pip install --prerelease=allow --upgrade homeassistant pytest-homeassistant-custom-component
+
 
     - name: "Test"
       run: uv run pytest
