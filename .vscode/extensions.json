@@ -1,7 +1,6 @@
 {
     "recommendations": [
         "ms-python.python",
-        "charliermarsh.ruff",
-        "GitHub.copilot"
+        "charliermarsh.ruff"
     ]
 }

@@ -1,0 +1,23 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: "Checkout the repository"
+      uses: actions/checkout@v6
+
+    - name: "Set up Python"
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+
+    - name: "Test"
+      run: uv run pytest

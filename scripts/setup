@@ -6,6 +6,4 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # cd "$(dirname "$0")/.."
 
-uv venv
-source .venv/bin/activate
-uv pip install --requirement requirements.txt
+uv sync --dev
