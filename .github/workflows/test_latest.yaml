@@ -21,9 +21,9 @@ jobs:
 
     - name: "Install latest HA and test plugin (including betas)"
       run: | 
-        uv sync
-        uv pip install --upgrade pytest-homeassistant-custom-component
-
+        uv venv
+        source .venv/bin/activate
+        uv pip install --prerelease=allow aiofiles pytest-homeassistant-custom-component
 
     - name: "Test"
-      run: uv run pytest
+      run: python -m pytest
