@@ -1,11 +1,20 @@
 """Helper functions for stateful_scenes."""
 
 import logging
+from typing import Any
+
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry, device_registry, area_registry
-from homeassistant.helpers.template import state_attr
+from homeassistant.helpers import area_registry, device_registry, entity_registry
+from homeassistant.helpers.template.states import _get_state
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def state_attr(hass: HomeAssistant, entity_id: str, name: str) -> Any:
+    """Get a specific attribute from a state."""
+    if (state_obj := _get_state(hass, entity_id)) is not None:
+        return state_obj.attributes.get(name)
+    return None
 
 
 def get_id_from_entity_id(hass: HomeAssistant, entity_id: str | None) -> str | None:

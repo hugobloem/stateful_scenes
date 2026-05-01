@@ -401,6 +401,7 @@ class TestSceneEvaluationTimer:
         callback = AsyncMock()
         await timer.async_start(callback)
         assert timer.is_active() is True
+        await timer.async_cancel_if_active()
 
     async def test_timer_does_not_start_with_zero_transition(self, hass: HomeAssistant):
         """Test timer does not start when transition time is 0."""
@@ -424,6 +425,7 @@ class TestSceneEvaluationTimer:
         timer = SceneEvaluationTimer(hass, 1.0, 0.0)
         callback = AsyncMock()
         await timer.async_start(callback)
+        await timer.async_cancel_if_active()
         await timer.async_clear()
         assert timer.is_active() is False
 
