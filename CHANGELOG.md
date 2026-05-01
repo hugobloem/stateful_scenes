@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.7.9](https://github.com/hugobloem/stateful_scenes/compare/v1.7.8...v1.7.9) (2026-05-01)
+
+
+### 🐛 Bugfixes
+
+* state_attr cannot be imported in 2025.6 ([#247](https://github.com/hugobloem/stateful_scenes/issues/247)) ([d745621](https://github.com/hugobloem/stateful_scenes/commit/d745621eef8da2dc22d44684e3282234d4fe6376))
+
+
+### 🔨 Code Refactoring
+
+* format code for improved readability and consistency ([#248](https://github.com/hugobloem/stateful_scenes/issues/248)) ([82522d4](https://github.com/hugobloem/stateful_scenes/commit/82522d4ac6483208a8a3afb7a8af9a285870c5b9))
+
+
+### 🧪 Tests
+
+* Add tests and CI workflows for Stateful Scenes ([#245](https://github.com/hugobloem/stateful_scenes/issues/245)) ([0cece2f](https://github.com/hugobloem/stateful_scenes/commit/0cece2f3b2aa0797a7d3c7a92e1d38a04d59bd33))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps-dev:** update ruff requirement from &gt;=0.3 to &gt;=0.15.12 ([#241](https://github.com/hugobloem/stateful_scenes/issues/241)) ([bb65d80](https://github.com/hugobloem/stateful_scenes/commit/bb65d80acc1cb2525bad873d2fc65ae2be58da73))
+* **deps:** bump googleapis/release-please-action from 4 to 5 ([#240](https://github.com/hugobloem/stateful_scenes/issues/240)) ([b1b565d](https://github.com/hugobloem/stateful_scenes/commit/b1b565d921999eea688c696ef3dc7a14f12c2eae))
+* update hacs minimum homeassistant version ([#249](https://github.com/hugobloem/stateful_scenes/issues/249)) ([b546138](https://github.com/hugobloem/stateful_scenes/commit/b5461381a2b2410402411ec03280c77c3339133a))
+
 ## [1.7.8](https://github.com/hugobloem/stateful_scenes/compare/v1.7.7...v1.7.8) (2026-02-07)
 
 
