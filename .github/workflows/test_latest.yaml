@@ -23,7 +23,9 @@ jobs:
       run: | 
         uv venv
         source .venv/bin/activate
-        uv pip install --prerelease=allow aiofiles pytest-homeassistant-custom-component
-
-    - name: "Test"
-      run: python -m pytest
+        uv pip install --prerelease=allow aiofiles pytest pytest-homeassistant-custom-component
+        
+        - name: "Test"
+        run: |
+          source .venv/bin/activate
+          python -m pytest
