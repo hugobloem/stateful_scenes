@@ -58,12 +58,20 @@ def mock_scene_entities(hass):
     hass.states.async_set(
         "scene.test_scene_1",
         "scening",
-        {"friendly_name": "Test Scene 1", "id": "1001", "entity_id": ["light.living_room", "light.bedroom"]},
+        {
+            "friendly_name": "Test Scene 1",
+            "id": "1001",
+            "entity_id": ["light.living_room", "light.bedroom"],
+        },
     )
     hass.states.async_set(
         "scene.test_scene_2",
         "scening",
-        {"friendly_name": "Test Scene 2", "id": "1002", "entity_id": ["light.living_room", "cover.blinds"]},
+        {
+            "friendly_name": "Test Scene 2",
+            "id": "1002",
+            "entity_id": ["light.living_room", "cover.blinds"],
+        },
     )
 
 

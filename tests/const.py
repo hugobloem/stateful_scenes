@@ -77,7 +77,11 @@ SCENE_CONF_FULL = {
     "icon": "mdi:lightbulb",
     "number_tolerance": 2,
     "entities": {
-        "light.living_room": {"state": "on", "brightness": 255, "rgb_color": [255, 0, 0]},
+        "light.living_room": {
+            "state": "on",
+            "brightness": 255,
+            "rgb_color": [255, 0, 0],
+        },
         "light.bedroom": {"state": "off"},
         "cover.blinds": {"state": "open", "current_position": 100},
     },

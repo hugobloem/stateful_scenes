@@ -19,7 +19,6 @@ from custom_components.stateful_scenes.const import (
 from custom_components.stateful_scenes.StatefulScenes import Hub, Scene
 
 
-
 async def test_async_setup_entry_hub(
     hass: HomeAssistant, mock_config_entry_hub: MockConfigEntry, mock_scene_entities
 ):
@@ -38,7 +37,9 @@ async def test_async_setup_entry_hub(
 
 
 async def test_async_setup_entry_external_scene(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test setup of an external scene config entry."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
@@ -88,7 +89,7 @@ async def test_load_scenes_file_not_found(hass: HomeAssistant):
 async def test_load_scenes_file_none(hass: HomeAssistant):
     """Test loading with None path raises error."""
     with pytest.raises(StatefulScenesYamlNotFound):
-        await load_scenes_file(hass, None) # type: ignore
+        await load_scenes_file(hass, None)  # type: ignore
 
 
 async def test_load_scenes_file_empty_string(hass: HomeAssistant):

@@ -93,7 +93,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         _LOGGER.info(
             "Could not auto-detect scenes.yaml, using default '%s'. "
             "User may need to adjust path during configuration.",
-            DEFAULT_SCENE_PATH
+            DEFAULT_SCENE_PATH,
         )
         return (DEFAULT_SCENE_PATH, warning)
 
@@ -116,7 +116,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                scene_confs = await load_scenes_file(self.hass, user_input[CONF_SCENE_PATH])
+                scene_confs = await load_scenes_file(
+                    self.hass, user_input[CONF_SCENE_PATH]
+                )
                 _ = Hub(
                     hass=self.hass,
                     scene_confs=scene_confs,
@@ -156,9 +158,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Optional(
                         CONF_SCENE_PATH,
                         default=detected_path,
-                        description={
-                            "suggested_value": detected_path
-                        }
+                        description={"suggested_value": detected_path},
                     ): selector.TextSelector(
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.TEXT,
@@ -211,11 +211,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(unique_id)
         self._abort_if_unique_id_configured()
 
-        scene_name = get_name_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID]) or "Unknown"
-        scene_area = get_area_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID]) or "No Area"
-        self.context["title_placeholders"] = {
-            "name": f"{scene_name} - {scene_area}"
-        }
+        scene_name = (
+            get_name_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID])
+            or "Unknown"
+        )
+        scene_area = (
+            get_area_from_entity_id(self.hass, discovery_info[CONF_SCENE_ENTITY_ID])
+            or "No Area"
+        )
+        self.context["title_placeholders"] = {"name": f"{scene_name} - {scene_area}"}
 
         return await self.async_step_configure_external_scene_entities()
 
@@ -298,7 +302,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             description_placeholders={
-                "scene_name": get_name_from_entity_id(self.hass, entity_id) or "Unknown Scene"
+                "scene_name": get_name_from_entity_id(self.hass, entity_id)
+                or "Unknown Scene"
             },
             errors=errors,
         )
@@ -350,7 +355,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             description_placeholders={
-                "entity_name": get_name_from_entity_id(self.hass, entity_id) or "Unknown Entity",
+                "entity_name": get_name_from_entity_id(self.hass, entity_id)
+                or "Unknown Entity",
             },
             errors=errors,
         )

@@ -54,7 +54,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         # Clean up orphaned entities for removed scenes
         valid_scene_ids = {scene.id for scene in hub.scenes}
-        await async_cleanup_orphaned_entities(hass, DOMAIN, entry.entry_id, valid_scene_ids)
+        await async_cleanup_orphaned_entities(
+            hass, DOMAIN, entry.entry_id, valid_scene_ids
+        )
 
     else:
         scene = Scene(hass, entry.data)
@@ -62,7 +64,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         # Clean up orphaned entities for single scene setup
         valid_scene_ids = {scene.id}
-        await async_cleanup_orphaned_entities(hass, DOMAIN, entry.entry_id, valid_scene_ids)
+        await async_cleanup_orphaned_entities(
+            hass, DOMAIN, entry.entry_id, valid_scene_ids
+        )
 
     if is_hub and entry.data.get(CONF_ENABLE_DISCOVERY, False):
         discovery_manager = DiscoveryManager(hass, entry)
@@ -115,15 +119,12 @@ async def load_scenes_file(hass: HomeAssistant, scene_path: str) -> list:
     # Check if file exists
     if not os.path.exists(resolved_path):
         raise StatefulScenesYamlNotFound(
-            f"No scenes file found at {resolved_path} "
-            f"(from input path: {scene_path})"
+            f"No scenes file found at {resolved_path} (from input path: {scene_path})"
         )
 
     # Verify it's a file, not a directory
     if not os.path.isfile(resolved_path):
-        raise StatefulScenesYamlNotFound(
-            f"Path {resolved_path} is not a file"
-        )
+        raise StatefulScenesYamlNotFound(f"Path {resolved_path} is not a file")
 
     try:
         async with aiofiles.open(resolved_path, encoding="utf-8") as f:
