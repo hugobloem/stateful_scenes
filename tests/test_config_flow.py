@@ -42,11 +42,13 @@ async def test_configure_internal_scenes_success(hass: HomeAssistant):
 
     # Set up scene entities so Hub can resolve entity_ids
     hass.states.async_set(
-        "scene.test_scene_1", "scening",
+        "scene.test_scene_1",
+        "scening",
         {"friendly_name": "Test Scene 1", "id": "1001"},
     )
     hass.states.async_set(
-        "scene.test_scene_2", "scening",
+        "scene.test_scene_2",
+        "scening",
         {"friendly_name": "Test Scene 2", "id": "1002"},
     )
 
@@ -151,7 +153,8 @@ async def test_select_external_scenes_step(
 
     # Add an external scene entity
     hass.states.async_set(
-        "scene.external_scene", "scening",
+        "scene.external_scene",
+        "scening",
         {"friendly_name": "External Scene"},
     )
 

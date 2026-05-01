@@ -8,7 +8,11 @@ import pytest
 from homeassistant.core import HomeAssistant, ServiceCall
 
 from custom_components.stateful_scenes.const import StatefulScenesYamlInvalid
-from custom_components.stateful_scenes.StatefulScenes import Hub, Scene, SceneEvaluationTimer
+from custom_components.stateful_scenes.StatefulScenes import (
+    Hub,
+    Scene,
+    SceneEvaluationTimer,
+)
 
 from .const import (
     SCENE_CONF_FULL,
@@ -70,7 +74,9 @@ class TestCompareValues:
         """Test list comparison."""
         scene = self._make_scene(hass)
         assert scene.compare_values([255, 0, 0], [255, 0, 0]) is True
-        assert scene.compare_values([255, 0, 0], [255, 0, 1]) is True  # within tolerance
+        assert (
+            scene.compare_values([255, 0, 0], [255, 0, 1]) is True
+        )  # within tolerance
         assert scene.compare_values([255, 0, 0], [255, 0, 5]) is False
 
     async def test_compare_tuples(self, hass: HomeAssistant):
@@ -117,7 +123,9 @@ class TestSceneStateChecking:
     async def test_check_state_not_matching(self, hass: HomeAssistant):
         """Test entity state does not match scene definition."""
         scene = Scene(hass, SCENE_CONF_MINIMAL)
-        hass.states.async_set("light.test_light", "off", {"friendly_name": "Test Light"})
+        hass.states.async_set(
+            "light.test_light", "off", {"friendly_name": "Test Light"}
+        )
         state = hass.states.get("light.test_light")
         result = await scene.async_check_state("light.test_light", state)
         assert result is False
@@ -140,7 +148,9 @@ class TestSceneStateChecking:
         result = await scene.async_check_state("light.test_light", state)
         assert result is False
 
-    async def test_check_all_states_all_on(self, hass: HomeAssistant, mock_light_entities):
+    async def test_check_all_states_all_on(
+        self, hass: HomeAssistant, mock_light_entities
+    ):
         """Test all entities matching means scene is on."""
         conf = SCENE_CONF_FULL.copy()
         conf["entities"] = {
@@ -151,7 +161,9 @@ class TestSceneStateChecking:
         await scene.async_check_all_states()
         assert scene.is_on is True
 
-    async def test_check_all_states_partial(self, hass: HomeAssistant, mock_light_entities):
+    async def test_check_all_states_partial(
+        self, hass: HomeAssistant, mock_light_entities
+    ):
         """Test partial entity match means scene is off."""
         conf = SCENE_CONF_FULL.copy()
         conf["entities"] = {
@@ -203,7 +215,9 @@ class TestSceneStateChecking:
 class TestSceneTurnOnOff:
     """Tests for Scene turn on/off."""
 
-    async def test_turn_on(self, hass: HomeAssistant, service_calls: list[ServiceCall], mock_light_entities):
+    async def test_turn_on(
+        self, hass: HomeAssistant, service_calls: list[ServiceCall], mock_light_entities
+    ):
         """Test turning on a scene calls the scene service."""
         hass.states.async_set(
             "scene.minimal",
@@ -217,10 +231,14 @@ class TestSceneTurnOnOff:
         assert scene.is_on is True
         assert len(service_calls) >= 1
         # Find the scene.turn_on call
-        scene_calls = [c for c in service_calls if c.domain == "scene" and c.service == "turn_on"]
+        scene_calls = [
+            c for c in service_calls if c.domain == "scene" and c.service == "turn_on"
+        ]
         assert len(scene_calls) == 1
 
-    async def test_turn_off_restore(self, hass: HomeAssistant, service_calls: list[ServiceCall], mock_light_entities):
+    async def test_turn_off_restore(
+        self, hass: HomeAssistant, service_calls: list[ServiceCall], mock_light_entities
+    ):
         """Test turning off with restore calls scene.apply."""
         hass.states.async_set("light.test_light", "on", {"friendly_name": "Test"})
         scene = Scene(hass, SCENE_CONF_MINIMAL)
@@ -235,10 +253,14 @@ class TestSceneTurnOnOff:
 
         assert scene.is_on is False
         # Should call scene.apply to restore
-        scene_apply_calls = [c for c in service_calls if c.domain == "scene" and c.service == "apply"]
+        scene_apply_calls = [
+            c for c in service_calls if c.domain == "scene" and c.service == "apply"
+        ]
         assert len(scene_apply_calls) == 1
 
-    async def test_turn_off_with_off_scene(self, hass: HomeAssistant, service_calls: list[ServiceCall]):
+    async def test_turn_off_with_off_scene(
+        self, hass: HomeAssistant, service_calls: list[ServiceCall]
+    ):
         """Test turning off with an off-scene activates that scene."""
         hass.states.async_set("light.test_light", "on", {})
         scene = Scene(hass, SCENE_CONF_MINIMAL)
@@ -249,10 +271,14 @@ class TestSceneTurnOnOff:
         await scene.async_turn_off()
 
         assert scene.is_on is False
-        scene_calls = [c for c in service_calls if c.domain == "scene" and c.service == "turn_on"]
+        scene_calls = [
+            c for c in service_calls if c.domain == "scene" and c.service == "turn_on"
+        ]
         assert len(scene_calls) == 1
 
-    async def test_turn_off_entities(self, hass: HomeAssistant, service_calls: list[ServiceCall]):
+    async def test_turn_off_entities(
+        self, hass: HomeAssistant, service_calls: list[ServiceCall]
+    ):
         """Test turning off without restore calls homeassistant.turn_off."""
         hass.states.async_set("light.test_light", "on", {})
         scene = Scene(hass, SCENE_CONF_MINIMAL)
@@ -263,10 +289,16 @@ class TestSceneTurnOnOff:
         await scene.async_turn_off()
 
         assert scene.is_on is False
-        ha_calls = [c for c in service_calls if c.domain == "homeassistant" and c.service == "turn_off"]
+        ha_calls = [
+            c
+            for c in service_calls
+            if c.domain == "homeassistant" and c.service == "turn_off"
+        ]
         assert len(ha_calls) == 1
 
-    async def test_turn_off_when_already_off(self, hass: HomeAssistant, service_calls: list[ServiceCall]):
+    async def test_turn_off_when_already_off(
+        self, hass: HomeAssistant, service_calls: list[ServiceCall]
+    ):
         """Test turning off when scene is already off does nothing."""
         scene = Scene(hass, SCENE_CONF_MINIMAL)
         scene._is_on = False
@@ -421,7 +453,9 @@ class TestHub:
         assert hub.scenes[0].name == "Test Scene 1"
         assert hub.scenes[1].name == "Test Scene 2"
 
-    async def test_hub_validate_scene_valid(self, hass: HomeAssistant, mock_scene_entities):
+    async def test_hub_validate_scene_valid(
+        self, hass: HomeAssistant, mock_scene_entities
+    ):
         """Test valid scene passes validation."""
         hub = Hub(hass, SCENE_YAML_RAW, number_tolerance=1)
         result = hub.validate_scene(SCENE_YAML_RAW[0])
@@ -442,7 +476,9 @@ class TestHub:
         with pytest.raises(StatefulScenesYamlInvalid, match="missing state"):
             Hub(hass, SCENE_YAML_INVALID_NO_STATE, number_tolerance=1)
 
-    async def test_hub_extract_scene_configuration(self, hass: HomeAssistant, mock_scene_entities):
+    async def test_hub_extract_scene_configuration(
+        self, hass: HomeAssistant, mock_scene_entities
+    ):
         """Test extracting scene configuration normalizes data."""
         hub = Hub(hass, SCENE_YAML_RAW, number_tolerance=1)
         config = hub.extract_scene_configuration(SCENE_YAML_RAW[0])
@@ -468,7 +504,9 @@ class TestHub:
         assert config["entities"]["light.test"]["state"] == "on"
         assert config["entities"]["switch.test"]["state"] == "off"
 
-    async def test_hub_extract_filters_attributes(self, hass: HomeAssistant, mock_scene_entities):
+    async def test_hub_extract_filters_attributes(
+        self, hass: HomeAssistant, mock_scene_entities
+    ):
         """Test extract only keeps relevant attributes per domain."""
         hub = Hub(hass, SCENE_YAML_RAW, number_tolerance=1)
         config = hub.extract_scene_configuration(SCENE_YAML_RAW[1])
@@ -477,7 +515,9 @@ class TestHub:
         assert "current_position" in config["entities"]["cover.blinds"]
         assert config["entities"]["cover.blinds"]["current_position"] == 75
 
-    async def test_hub_get_available_scenes(self, hass: HomeAssistant, mock_scene_entities):
+    async def test_hub_get_available_scenes(
+        self, hass: HomeAssistant, mock_scene_entities
+    ):
         """Test getting available scenes list."""
         hub = Hub(hass, SCENE_YAML_RAW, number_tolerance=1)
         scenes = hub.get_available_scenes()

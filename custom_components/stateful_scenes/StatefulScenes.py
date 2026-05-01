@@ -4,10 +4,7 @@ import logging
 from typing import Any
 
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
-from homeassistant.helpers import (
-    area_registry as ar,
-    entity_registry as er
-)
+from homeassistant.helpers import area_registry as ar, entity_registry as er
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.template.helpers import resolve_area_id
 from .const import (
@@ -779,6 +776,3 @@ class Hub:
         return next(
             (scene for scene in self.scenes if scene.entity_id == scene_id), None
         )
-
-
-

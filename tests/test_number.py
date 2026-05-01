@@ -8,9 +8,10 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.stateful_scenes.const import DOMAIN
 
 
-
 async def test_number_entities_created(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test number entities are created for scene."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
@@ -22,15 +23,16 @@ async def test_number_entities_created(
 
 
 async def test_transition_number_set_value(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test setting transition time via number entity."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
     await hass.async_block_till_done()
 
     transition_numbers = [
-        eid for eid in hass.states.async_entity_ids("number")
-        if "transition" in eid
+        eid for eid in hass.states.async_entity_ids("number") if "transition" in eid
     ]
 
     if transition_numbers:
@@ -45,15 +47,16 @@ async def test_transition_number_set_value(
 
 
 async def test_debounce_number_set_value(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test setting debounce time via number entity."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
     await hass.async_block_till_done()
 
     debounce_numbers = [
-        eid for eid in hass.states.async_entity_ids("number")
-        if "debounce" in eid
+        eid for eid in hass.states.async_entity_ids("number") if "debounce" in eid
     ]
 
     if debounce_numbers:
@@ -68,15 +71,16 @@ async def test_debounce_number_set_value(
 
 
 async def test_tolerance_number_set_value(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test setting tolerance via number entity."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
     await hass.async_block_till_done()
 
     tolerance_numbers = [
-        eid for eid in hass.states.async_entity_ids("number")
-        if "tolerance" in eid
+        eid for eid in hass.states.async_entity_ids("number") if "tolerance" in eid
     ]
 
     if tolerance_numbers:
@@ -91,15 +95,16 @@ async def test_tolerance_number_set_value(
 
 
 async def test_transition_number_range(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test transition number entity has correct range."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
     await hass.async_block_till_done()
 
     transition_numbers = [
-        eid for eid in hass.states.async_entity_ids("number")
-        if "transition" in eid
+        eid for eid in hass.states.async_entity_ids("number") if "transition" in eid
     ]
 
     if transition_numbers:
@@ -111,8 +116,11 @@ async def test_transition_number_range(
 
 
 async def test_number_entities_hub(
-    hass: HomeAssistant, mock_config_entry_hub: MockConfigEntry,
-    mock_scene_entities, mock_light_entities, mock_cover_entities
+    hass: HomeAssistant,
+    mock_config_entry_hub: MockConfigEntry,
+    mock_scene_entities,
+    mock_light_entities,
+    mock_cover_entities,
 ):
     """Test number entities are created for each hub scene."""
     await hass.config_entries.async_setup(mock_config_entry_hub.entry_id)

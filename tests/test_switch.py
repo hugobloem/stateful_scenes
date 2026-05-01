@@ -10,9 +10,12 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.stateful_scenes.const import DOMAIN
 
 
-
 async def test_switch_setup_hub(
-    hass: HomeAssistant, mock_config_entry_hub: MockConfigEntry, mock_scene_entities, mock_light_entities, mock_cover_entities
+    hass: HomeAssistant,
+    mock_config_entry_hub: MockConfigEntry,
+    mock_scene_entities,
+    mock_light_entities,
+    mock_cover_entities,
 ):
     """Test switch entities are created for hub scenes."""
     await hass.config_entries.async_setup(mock_config_entry_hub.entry_id)
@@ -25,7 +28,9 @@ async def test_switch_setup_hub(
 
 
 async def test_switch_setup_external(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test switch entities are created for external scene."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
@@ -37,11 +42,14 @@ async def test_switch_setup_external(
 
 
 async def test_switch_turn_on(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test turning on the scene switch calls scene.turn_on."""
     hass.states.async_set(
-        "scene.external_test", "scening",
+        "scene.external_test",
+        "scening",
         {"friendly_name": "External Scene", "id": "ext_1001"},
     )
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
@@ -51,7 +59,8 @@ async def test_switch_turn_on(
     entity_id = "switch.stateful_scene"
     # Get all switch entities - find the one that's the main switch
     switch_states = [
-        eid for eid in hass.states.async_entity_ids("switch")
+        eid
+        for eid in hass.states.async_entity_ids("switch")
         if "restore" not in eid and "ignore" not in eid
     ]
 
@@ -70,18 +79,22 @@ async def test_switch_turn_on(
 
 
 async def test_switch_turn_off(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test turning off the scene switch calls scene.turn_off."""
     hass.states.async_set(
-        "scene.external_test", "scening",
+        "scene.external_test",
+        "scening",
         {"friendly_name": "External Scene", "id": "ext_1001"},
     )
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
     await hass.async_block_till_done()
 
     switch_states = [
-        eid for eid in hass.states.async_entity_ids("switch")
+        eid
+        for eid in hass.states.async_entity_ids("switch")
         if "restore" not in eid and "ignore" not in eid
     ]
 
@@ -102,7 +115,9 @@ async def test_switch_turn_off(
 
 
 async def test_restore_on_deactivate_switch(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test RestoreOnDeactivate switch toggles scene property."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
@@ -110,8 +125,7 @@ async def test_restore_on_deactivate_switch(
 
     # Find the restore on deactivate switch
     restore_switches = [
-        eid for eid in hass.states.async_entity_ids("switch")
-        if "restore" in eid
+        eid for eid in hass.states.async_entity_ids("switch") if "restore" in eid
     ]
 
     if restore_switches:
@@ -133,14 +147,17 @@ async def test_restore_on_deactivate_switch(
 
 
 async def test_ignore_unavailable_switch(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test IgnoreUnavailable switch toggles scene property."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
     await hass.async_block_till_done()
 
     ignore_switches = [
-        eid for eid in hass.states.async_entity_ids("switch")
+        eid
+        for eid in hass.states.async_entity_ids("switch")
         if "ignore_unavailable" in eid
     ]
 
@@ -156,14 +173,17 @@ async def test_ignore_unavailable_switch(
 
 
 async def test_ignore_attributes_switch(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test IgnoreAttributes switch toggles scene property."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
     await hass.async_block_till_done()
 
     ignore_switches = [
-        eid for eid in hass.states.async_entity_ids("switch")
+        eid
+        for eid in hass.states.async_entity_ids("switch")
         if "ignore_attributes" in eid or "ignore_attr" in eid
     ]
 

@@ -8,9 +8,10 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.stateful_scenes.const import DEFAULT_OFF_SCENE_ENTITY_ID
 
 
-
 async def test_select_entity_created_external(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test select entity is created for external scene."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
@@ -21,8 +22,11 @@ async def test_select_entity_created_external(
 
 
 async def test_select_entity_created_hub(
-    hass: HomeAssistant, mock_config_entry_hub: MockConfigEntry,
-    mock_scene_entities, mock_light_entities, mock_cover_entities
+    hass: HomeAssistant,
+    mock_config_entry_hub: MockConfigEntry,
+    mock_scene_entities,
+    mock_light_entities,
+    mock_cover_entities,
 ):
     """Test select entities are created for hub scenes."""
     await hass.config_entries.async_setup(mock_config_entry_hub.entry_id)
@@ -34,7 +38,9 @@ async def test_select_entity_created_hub(
 
 
 async def test_select_default_option(
-    hass: HomeAssistant, mock_config_entry_external: MockConfigEntry, mock_light_entities
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
 ):
     """Test select entity starts as unavailable (restore on deactivate is on by default)."""
     await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
@@ -51,8 +57,11 @@ async def test_select_default_option(
 
 
 async def test_select_change_off_scene(
-    hass: HomeAssistant, mock_config_entry_hub: MockConfigEntry,
-    mock_scene_entities, mock_light_entities, mock_cover_entities
+    hass: HomeAssistant,
+    mock_config_entry_hub: MockConfigEntry,
+    mock_scene_entities,
+    mock_light_entities,
+    mock_cover_entities,
 ):
     """Test changing the off scene select updates the scene."""
     await hass.config_entries.async_setup(mock_config_entry_hub.entry_id)
