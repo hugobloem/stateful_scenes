@@ -40,6 +40,35 @@
                 "data": {
                     "external_scene_active": "Activated?"
                 }
+            },
+            "reconfigure_hub": {
+                "description": "Reconfigure your Stateful Scenes settings.",
+                "data": {
+                    "scene_path": "Scene path",
+                    "number_tolerance": "Rounding tolerance",
+                    "restore_states_on_deactivate": "Restore states on deactivation",
+                    "transition_time": "Transition time",
+                    "debounce_time": "Debounce time",
+                    "ignore_unavailable": "Ignore entities in unavailable state",
+                    "enable_discovery": "Enable discovery"
+                }
+            },
+            "reconfigure_external": {
+                "description": "Reconfigure your external scene settings and entities.",
+                "data": {
+                    "number_tolerance": "Rounding tolerance",
+                    "restore_states_on_deactivate": "Restore states on deactivation",
+                    "transition_time": "Transition time",
+                    "debounce_time": "Debounce time",
+                    "ignore_unavailable": "Ignore entities in unavailable state",
+                    "scene_entities": "Scene entities"
+                }
+            },
+            "reconfigure_external_learn": {
+                "description": "The scene has been activated. Confirm that {entity_name} is in the desired state.",
+                "data": {
+                    "external_scene_active": "Activated?"
+                }
             }
         },
         "error": {
@@ -48,6 +77,9 @@
             "unknown": "Unknown error occurred",
             "no_entity_id": "No entity ID found",
             "hub_not_found": "Main entry not found, configure Stateful Scenes first"
+        },
+        "abort": {
+            "reconfigure_successful": "Configuration updated successfully"
         }
     }
 }

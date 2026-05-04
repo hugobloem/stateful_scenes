@@ -6,9 +6,11 @@ import os
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry, entity_registry
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.stateful_scenes import (
+    async_remove_entry,
     load_scenes_file,
 )
 from custom_components.stateful_scenes.const import (
@@ -126,3 +128,130 @@ async def test_load_scenes_file_not_a_list(hass: HomeAssistant):
 
     with pytest.raises(StatefulScenesYamlInvalid):
         await load_scenes_file(hass, "notlist.yaml")
+
+
+async def test_async_remove_entry_cleans_up_entities_and_devices(
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
+):
+    """Test removing a config entry cleans up its entities and devices."""
+    await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
+    await hass.async_block_till_done()
+
+    er = entity_registry.async_get(hass)
+    dr = device_registry.async_get(hass)
+
+    # Register a device and entity for this config entry
+    device = dr.async_get_or_create(
+        config_entry_id=mock_config_entry_external.entry_id,
+        identifiers={(DOMAIN, "test_device_1")},
+        name="Test Device",
+    )
+    er.async_get_or_create(
+        domain="switch",
+        platform=DOMAIN,
+        unique_id="ext_1001",
+        config_entry=mock_config_entry_external,
+        device_id=device.id,
+    )
+
+    # Verify entity and device exist
+    entities_before = [
+        e
+        for e in er.entities.values()
+        if e.config_entry_id == mock_config_entry_external.entry_id
+    ]
+    assert len(entities_before) >= 1
+
+    devices_before = [
+        d
+        for d in dr.devices.values()
+        if mock_config_entry_external.entry_id in d.config_entries
+    ]
+    assert len(devices_before) >= 1
+
+    # Unload then remove
+    await hass.config_entries.async_unload(mock_config_entry_external.entry_id)
+    await hass.async_block_till_done()
+
+    await async_remove_entry(hass, mock_config_entry_external)
+
+    # Verify entities are removed
+    entities_after = [
+        e
+        for e in er.entities.values()
+        if e.config_entry_id == mock_config_entry_external.entry_id
+    ]
+    assert len(entities_after) == 0
+
+    # Verify devices are removed
+    devices_after = [
+        d
+        for d in dr.devices.values()
+        if mock_config_entry_external.entry_id in d.config_entries
+    ]
+    assert len(devices_after) == 0
+
+
+async def test_async_remove_entry_no_entities(
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
+):
+    """Test removing an entry with no registered entities does not error."""
+    await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
+    await hass.async_block_till_done()
+
+    await hass.config_entries.async_unload(mock_config_entry_external.entry_id)
+    await hass.async_block_till_done()
+
+    # Should not raise even with no entities/devices to clean up
+    await async_remove_entry(hass, mock_config_entry_external)
+
+
+async def test_async_remove_entry_hub(
+    hass: HomeAssistant,
+    mock_config_entry_hub: MockConfigEntry,
+    mock_scene_entities,
+):
+    """Test removing a hub config entry cleans up its devices."""
+    await hass.config_entries.async_setup(mock_config_entry_hub.entry_id)
+    await hass.async_block_till_done()
+
+    er = entity_registry.async_get(hass)
+    dr = device_registry.async_get(hass)
+
+    # Register a device for the hub entry
+    device = dr.async_get_or_create(
+        config_entry_id=mock_config_entry_hub.entry_id,
+        identifiers={(DOMAIN, "hub_device_1")},
+        name="Hub Device",
+    )
+    er.async_get_or_create(
+        domain="switch",
+        platform=DOMAIN,
+        unique_id="1001",
+        config_entry=mock_config_entry_hub,
+        device_id=device.id,
+    )
+
+    await hass.config_entries.async_unload(mock_config_entry_hub.entry_id)
+    await hass.async_block_till_done()
+
+    await async_remove_entry(hass, mock_config_entry_hub)
+
+    # Verify cleanup
+    entities_after = [
+        e
+        for e in er.entities.values()
+        if e.config_entry_id == mock_config_entry_hub.entry_id
+    ]
+    assert len(entities_after) == 0
+
+    devices_after = [
+        d
+        for d in dr.devices.values()
+        if mock_config_entry_hub.entry_id in d.config_entries
+    ]
+    assert len(devices_after) == 0

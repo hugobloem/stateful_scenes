@@ -40,6 +40,35 @@
                 "data": {
                     "external_scene_active": "Aktivovaná?"
                 }
+            },
+            "reconfigure_hub": {
+                "description": "Prekonfigurujte nastavenia Stateful Scenes.",
+                "data": {
+                    "scene_path": "Cesta scény",
+                    "number_tolerance": "Tolerancia zaokrúhľovania",
+                    "restore_states_on_deactivate": "Obnovte stavy pri deaktivácii",
+                    "transition_time": "Čas prechodu",
+                    "debounce_time": "Čas odskoku",
+                    "ignore_unavailable": "Ignorovať entity v nedostupnom stave",
+                    "enable_discovery": "Povoliť objavovanie"
+                }
+            },
+            "reconfigure_external": {
+                "description": "Prekonfigurujte nastavenia externej scény a entity.",
+                "data": {
+                    "number_tolerance": "Tolerancia zaokrúhľovania",
+                    "restore_states_on_deactivate": "Obnovte stavy pri deaktivácii",
+                    "transition_time": "Čas prechodu",
+                    "debounce_time": "Čas odskoku",
+                    "ignore_unavailable": "Ignorovať entity v nedostupnom stave",
+                    "scene_entities": "Scénické entity"
+                }
+            },
+            "reconfigure_external_learn": {
+                "description": "Scéna bola aktivovaná. Potvrďte, že {entity_name} je v požadovanom stave.",
+                "data": {
+                    "external_scene_active": "Aktivovaná?"
+                }
             }
         },
         "error": {
@@ -48,6 +77,9 @@
             "unknown": "Vyskytla sa neznáma chyba",
             "no_entity_id": "ID entity nenájdená",
             "hub_not_found": "Hlavná položka sa nenašla, najskôr nakonfigurujte stavové scény"
+        },
+        "abort": {
+            "reconfigure_successful": "Konfigurácia bola úspešne aktualizovaná"
         }
     }
 }
