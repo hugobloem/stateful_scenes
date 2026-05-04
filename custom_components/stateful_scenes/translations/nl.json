@@ -39,6 +39,35 @@
                 "data": {
                     "external_scene_active": "Geactiveerd?"
                 }
+            },
+            "reconfigure_hub": {
+                "description": "Herconfigureer uw Stateful Scenes instellingen.",
+                "data": {
+                    "scene_path": "Scènebestand pad",
+                    "number_tolerance": "Afrondingstolerantie",
+                    "restore_states_on_deactivate": "Status herstellen bij deactivering",
+                    "transition_time": "Transitie tijd",
+                    "debounce_time": "Debouncetijd",
+                    "ignore_unavailable": "Negeer entiteiten in niet-beschikbare staat",
+                    "enable_discovery": "Ontdekking inschakelen"
+                }
+            },
+            "reconfigure_external": {
+                "description": "Herconfigureer uw externe scène instellingen en entiteiten.",
+                "data": {
+                    "number_tolerance": "Afrondingstolerantie",
+                    "restore_states_on_deactivate": "Status herstellen bij deactivering",
+                    "transition_time": "Transitie tijd",
+                    "debounce_time": "Debouncetijd",
+                    "ignore_unavailable": "Negeer entiteiten in niet-beschikbare staat",
+                    "scene_entities": "Scène entiteiten"
+                }
+            },
+            "reconfigure_external_learn": {
+                "description": "De scène is geactiveerd. Bevestig dat {entity_name} in de gewenste staat is.",
+                "data": {
+                    "external_scene_active": "Geactiveerd?"
+                }
             }
         },
         "error": {
@@ -47,6 +76,9 @@
             "unknown": "Onbekende fout",
             "no_entity_id": "Geen entiteit ID gevonden",
             "hub_not_found": "Hoofd integratie niet gevonden, configureer eerst Stateful Scenes"
+        },
+        "abort": {
+            "reconfigure_successful": "Configuratie succesvol bijgewerkt"
         }
     }
 }

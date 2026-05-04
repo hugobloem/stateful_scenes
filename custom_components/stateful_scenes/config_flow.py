@@ -52,6 +52,72 @@ from .StatefulScenes import (
 _LOGGER = logging.getLogger(__name__)
 
 
+def _scene_settings_schema(defaults: dict) -> dict:
+    """Build the common scene settings schema fields."""
+    return {
+        vol.Optional(
+            CONF_NUMBER_TOLERANCE,
+            default=defaults.get(CONF_NUMBER_TOLERANCE, DEFAULT_NUMBER_TOLERANCE),
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=TOLERANCE_MIN, max=TOLERANCE_MAX, step=TOLERANCE_STEP
+            )
+        ),
+        vol.Optional(
+            CONF_RESTORE_STATES_ON_DEACTIVATE,
+            default=defaults.get(
+                CONF_RESTORE_STATES_ON_DEACTIVATE,
+                DEFAULT_RESTORE_STATES_ON_DEACTIVATE,
+            ),
+        ): selector.BooleanSelector(),
+        vol.Optional(
+            CONF_TRANSITION_TIME,
+            default=defaults.get(CONF_TRANSITION_TIME, DEFAULT_TRANSITION_TIME),
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=TRANSITION_MIN, max=TRANSITION_MAX, step=TRANSITION_STEP
+            )
+        ),
+        vol.Optional(
+            CONF_DEBOUNCE_TIME,
+            default=defaults.get(CONF_DEBOUNCE_TIME, DEFAULT_DEBOUNCE_TIME),
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=DEBOUNCE_MIN, max=DEBOUNCE_MAX, step=DEBOUNCE_STEP
+            )
+        ),
+        vol.Optional(
+            CONF_IGNORE_UNAVAILABLE,
+            default=defaults.get(CONF_IGNORE_UNAVAILABLE, DEFAULT_IGNORE_UNAVAILABLE),
+        ): selector.BooleanSelector(),
+    }
+
+
+def _hub_schema(defaults: dict) -> vol.Schema:
+    """Build the full hub configuration schema."""
+    scene_path = defaults.get(CONF_SCENE_PATH, DEFAULT_SCENE_PATH)
+    fields = {
+        vol.Optional(
+            CONF_SCENE_PATH,
+            default=scene_path,
+            description={"suggested_value": scene_path},
+        ): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+        ),
+        **_scene_settings_schema(defaults),
+        vol.Optional(
+            CONF_ENABLE_DISCOVERY,
+            default=defaults.get(CONF_ENABLE_DISCOVERY, DEFAULT_ENABLE_DISCOVERY),
+        ): selector.BooleanSelector(),
+    }
+    return vol.Schema(fields)
+
+
+def _external_schema(defaults: dict) -> vol.Schema:
+    """Build the external scene settings schema."""
+    return vol.Schema(_scene_settings_schema(defaults))
+
+
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Blueprint."""
 
@@ -97,6 +163,27 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
         return (DEFAULT_SCENE_PATH, warning)
 
+    async def _async_validate_hub_input(self, user_input: dict) -> dict[str, str]:
+        """Validate hub user input. Returns errors dict (empty on success)."""
+        errors = {}
+        try:
+            scene_confs = await load_scenes_file(self.hass, user_input[CONF_SCENE_PATH])
+            _ = Hub(
+                hass=self.hass,
+                scene_confs=scene_confs,
+                number_tolerance=user_input[CONF_NUMBER_TOLERANCE],
+            )
+        except StatefulScenesYamlInvalid as err:
+            _LOGGER.warning(err)
+            errors["base"] = "invalid_yaml"
+        except StatefulScenesYamlNotFound as err:
+            _LOGGER.warning(err)
+            errors["base"] = "yaml_not_found"
+        except Exception as err:
+            _LOGGER.warning(err)
+            errors["base"] = "unknown"
+        return errors
+
     async def async_step_user(self, user_input: dict | None = None) -> dict:
         """Handle a flow initialized by the user."""
         return self.async_show_menu(
@@ -115,25 +202,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            try:
-                scene_confs = await load_scenes_file(
-                    self.hass, user_input[CONF_SCENE_PATH]
-                )
-                _ = Hub(
-                    hass=self.hass,
-                    scene_confs=scene_confs,
-                    number_tolerance=user_input[CONF_NUMBER_TOLERANCE],
-                )
-            except StatefulScenesYamlInvalid as err:
-                _LOGGER.warning(err)
-                errors["base"] = "invalid_yaml"
-            except StatefulScenesYamlNotFound as err:
-                _LOGGER.warning(err)
-                errors["base"] = "yaml_not_found"
-            except Exception as err:
-                _LOGGER.warning(err)
-                errors["base"] = "unknown"
-            else:
+            errors = await self._async_validate_hub_input(user_input)
+            if not errors:
                 self.configuration.update(user_input)
                 self.configuration["hub"] = True
                 return self.async_create_entry(
@@ -153,50 +223,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="configure_internal_scenes",
             last_step=True,
             description_placeholders=description_placeholders if path_warning else None,
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_SCENE_PATH,
-                        default=detected_path,
-                        description={"suggested_value": detected_path},
-                    ): selector.TextSelector(
-                        selector.TextSelectorConfig(
-                            type=selector.TextSelectorType.TEXT,
-                        )
-                    ),
-                    vol.Optional(
-                        CONF_NUMBER_TOLERANCE, default=DEFAULT_NUMBER_TOLERANCE
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=TOLERANCE_MIN, max=TOLERANCE_MAX, step=TOLERANCE_STEP
-                        )
-                    ),
-                    vol.Optional(
-                        CONF_RESTORE_STATES_ON_DEACTIVATE,
-                        default=DEFAULT_RESTORE_STATES_ON_DEACTIVATE,
-                    ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_TRANSITION_TIME, default=DEFAULT_TRANSITION_TIME
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=TRANSITION_MIN, max=TRANSITION_MAX, step=TRANSITION_STEP
-                        )
-                    ),
-                    vol.Optional(
-                        CONF_DEBOUNCE_TIME, default=DEFAULT_DEBOUNCE_TIME
-                    ): selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=DEBOUNCE_MIN, max=DEBOUNCE_MAX, step=DEBOUNCE_STEP
-                        )
-                    ),
-                    vol.Optional(
-                        CONF_IGNORE_UNAVAILABLE, default=DEFAULT_IGNORE_UNAVAILABLE
-                    ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_ENABLE_DISCOVERY, default=DEFAULT_ENABLE_DISCOVERY
-                    ): selector.BooleanSelector(),
-                }
-            ),
+            data_schema=_hub_schema({CONF_SCENE_PATH: detected_path}),
             errors=errors,
         )
 
@@ -261,7 +288,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="select_external_scenes",
             data_schema=vol.Schema(
                 {
-                    # Define the fields for your second flow here
                     vol.Optional(CONF_SCENE_ENTITY_ID): selector.EntitySelector(
                         {
                             "filter": {"domain": "scene"},
@@ -291,7 +317,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="configure_external_scene_entities",
             data_schema=vol.Schema(
                 {
-                    # Define the fields for your second flow here
                     vol.Optional(
                         CONF_SCENE_ENTITIES, default=[]
                     ): selector.EntitySelector(
@@ -347,7 +372,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="learn_external_scene",
             data_schema=vol.Schema(
                 {
-                    # Define the fields for your second flow here
                     vol.Optional(
                         CONF_EXTERNAL_SCENE_ACTIVE,
                         default=DEFAULT_EXTERNAL_SCENE_ACTIVE,
@@ -359,4 +383,113 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 or "Unknown Entity",
             },
             errors=errors,
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle reconfiguration of an existing entry."""
+        entry = self._get_reconfigure_entry()
+        is_hub = entry.data.get("hub", CONF_SCENE_PATH in entry.data)
+
+        if is_hub:
+            return await self.async_step_reconfigure_hub(user_input)
+        return await self.async_step_reconfigure_external(user_input)
+
+    async def async_step_reconfigure_hub(
+        self, user_input: dict | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle reconfiguration of a hub entry."""
+        entry = self._get_reconfigure_entry()
+        errors = {}
+
+        if user_input is not None:
+            errors = await self._async_validate_hub_input(user_input)
+            if not errors:
+                user_input["hub"] = True
+                return self.async_update_reload_and_abort(
+                    entry,
+                    data_updates=user_input,
+                )
+
+        return self.async_show_form(
+            step_id="reconfigure_hub",
+            data_schema=_hub_schema(dict(entry.data)),
+            errors=errors,
+        )
+
+    async def async_step_reconfigure_external(
+        self, user_input: dict | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle reconfiguration of an external scene entry."""
+        entry = self._get_reconfigure_entry()
+
+        if user_input is not None:
+            new_entities = user_input.pop(CONF_SCENE_ENTITIES, None)
+            current_entities = list(entry.data.get("entities", {}).keys())
+
+            # If entities changed, store settings and go to re-learn step
+            if new_entities is not None and sorted(new_entities) != sorted(
+                current_entities
+            ):
+                self.configuration = dict(entry.data)
+                self.configuration.update(user_input)
+                self.configuration["_new_entities"] = new_entities
+                return await self.async_step_reconfigure_external_learn()
+
+            # Entities unchanged, just update settings
+            return self.async_update_reload_and_abort(
+                entry,
+                data_updates=user_input,
+            )
+
+        current_entities = list(entry.data.get("entities", {}).keys())
+        schema_fields = _scene_settings_schema(dict(entry.data))
+        schema_fields[vol.Optional(CONF_SCENE_ENTITIES, default=current_entities)] = (
+            selector.EntitySelector({"multiple": True})
+        )
+
+        return self.async_show_form(
+            step_id="reconfigure_external",
+            data_schema=vol.Schema(schema_fields),
+        )
+
+    async def async_step_reconfigure_external_learn(
+        self, user_input: dict | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Re-learn scene states after entity changes."""
+        entry = self._get_reconfigure_entry()
+        entity_id = self.configuration.get("entity_id")
+        new_entities = self.configuration.get("_new_entities")
+
+        await self.hass.services.async_call(
+            domain="scene",
+            service="turn_on",
+            target={"entity_id": entity_id},
+            service_data={"transition": 0},
+        )
+
+        if user_input is not None and user_input.get(CONF_EXTERNAL_SCENE_ACTIVE, False):
+            learned_states = Scene.learn_scene_states(self.hass, new_entities)
+            self.configuration.pop("_new_entities", None)
+            self.configuration["entities"] = learned_states
+            return self.async_update_reload_and_abort(
+                entry,
+                data_updates=self.configuration,
+            )
+
+        return self.async_show_form(
+            step_id="reconfigure_external_learn",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_EXTERNAL_SCENE_ACTIVE,
+                        default=DEFAULT_EXTERNAL_SCENE_ACTIVE,
+                    ): selector.BooleanSelector(),
+                }
+            ),
+            description_placeholders={
+                "entity_name": get_name_from_entity_id(self.hass, entity_id)
+                or "Unknown Entity",
+            },
         )

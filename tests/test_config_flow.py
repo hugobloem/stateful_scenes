@@ -7,19 +7,22 @@ import os
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.stateful_scenes.const import (
     CONF_DEBOUNCE_TIME,
     CONF_ENABLE_DISCOVERY,
+    CONF_EXTERNAL_SCENE_ACTIVE,
     CONF_IGNORE_UNAVAILABLE,
     CONF_NUMBER_TOLERANCE,
     CONF_RESTORE_STATES_ON_DEACTIVATE,
+    CONF_SCENE_ENTITIES,
     CONF_SCENE_PATH,
     CONF_TRANSITION_TIME,
     DOMAIN,
 )
 
-from .const import SCENES_YAML_CONTENT
+from .const import MOCK_EXTERNAL_SCENE_DATA, MOCK_HUB_DATA, SCENES_YAML_CONTENT
 
 
 async def test_user_step_shows_menu(hass: HomeAssistant):
@@ -186,3 +189,175 @@ async def test_integration_discovery_step(hass: HomeAssistant):
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "configure_external_scene_entities"
+
+
+async def test_reconfigure_hub_shows_form(
+    hass: HomeAssistant, mock_config_entry_hub: MockConfigEntry, mock_scene_entities
+):
+    """Test reconfigure step for hub entry shows form with current values."""
+    await hass.config_entries.async_setup(mock_config_entry_hub.entry_id)
+    await hass.async_block_till_done()
+
+    result = await mock_config_entry_hub.start_reconfigure_flow(hass)
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "reconfigure_hub"
+
+
+async def test_reconfigure_hub_updates_entry(
+    hass: HomeAssistant, mock_config_entry_hub: MockConfigEntry, mock_scene_entities
+):
+    """Test reconfigure hub with valid input updates the config entry."""
+    await hass.config_entries.async_setup(mock_config_entry_hub.entry_id)
+    await hass.async_block_till_done()
+
+    result = await mock_config_entry_hub.start_reconfigure_flow(hass)
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_SCENE_PATH: "scenes.yaml",
+            CONF_NUMBER_TOLERANCE: 5,
+            CONF_RESTORE_STATES_ON_DEACTIVATE: True,
+            CONF_TRANSITION_TIME: 2.0,
+            CONF_DEBOUNCE_TIME: 0.5,
+            CONF_IGNORE_UNAVAILABLE: True,
+            CONF_ENABLE_DISCOVERY: True,
+        },
+    )
+
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+
+    # Verify the entry was updated
+    assert mock_config_entry_hub.data[CONF_NUMBER_TOLERANCE] == 5
+    assert mock_config_entry_hub.data[CONF_RESTORE_STATES_ON_DEACTIVATE] is True
+    assert mock_config_entry_hub.data[CONF_TRANSITION_TIME] == 2.0
+    assert mock_config_entry_hub.data[CONF_DEBOUNCE_TIME] == 0.5
+    assert mock_config_entry_hub.data[CONF_IGNORE_UNAVAILABLE] is True
+    assert mock_config_entry_hub.data[CONF_ENABLE_DISCOVERY] is True
+
+
+async def test_reconfigure_hub_invalid_yaml(
+    hass: HomeAssistant, mock_config_entry_hub: MockConfigEntry, mock_scene_entities
+):
+    """Test reconfigure hub with invalid YAML shows error."""
+    await hass.config_entries.async_setup(mock_config_entry_hub.entry_id)
+    await hass.async_block_till_done()
+
+    result = await mock_config_entry_hub.start_reconfigure_flow(hass)
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_SCENE_PATH: "nonexistent.yaml",
+            CONF_NUMBER_TOLERANCE: 1,
+            CONF_RESTORE_STATES_ON_DEACTIVATE: False,
+            CONF_TRANSITION_TIME: 1.0,
+            CONF_DEBOUNCE_TIME: 0.0,
+            CONF_IGNORE_UNAVAILABLE: False,
+            CONF_ENABLE_DISCOVERY: False,
+        },
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "yaml_not_found"}
+
+
+async def test_reconfigure_external_shows_form(
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
+):
+    """Test reconfigure step for external scene entry shows form."""
+    await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
+    await hass.async_block_till_done()
+
+    result = await mock_config_entry_external.start_reconfigure_flow(hass)
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "reconfigure_external"
+
+
+async def test_reconfigure_external_updates_settings(
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
+):
+    """Test reconfigure external with same entities updates settings only."""
+    await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
+    await hass.async_block_till_done()
+
+    result = await mock_config_entry_external.start_reconfigure_flow(hass)
+
+    # Submit with same entities (unchanged) - should update directly
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_NUMBER_TOLERANCE: 3,
+            CONF_RESTORE_STATES_ON_DEACTIVATE: True,
+            CONF_TRANSITION_TIME: 1.5,
+            CONF_DEBOUNCE_TIME: 0.3,
+            CONF_IGNORE_UNAVAILABLE: True,
+            CONF_SCENE_ENTITIES: ["light.living_room", "light.bedroom"],
+        },
+    )
+
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+
+    # Verify the entry was updated
+    assert mock_config_entry_external.data[CONF_NUMBER_TOLERANCE] == 3
+    assert mock_config_entry_external.data[CONF_RESTORE_STATES_ON_DEACTIVATE] is True
+    assert mock_config_entry_external.data[CONF_TRANSITION_TIME] == 1.5
+    assert mock_config_entry_external.data[CONF_DEBOUNCE_TIME] == 0.3
+    assert mock_config_entry_external.data[CONF_IGNORE_UNAVAILABLE] is True
+
+
+async def test_reconfigure_external_change_entities(
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
+    service_calls,
+):
+    """Test reconfigure external with changed entities triggers re-learn."""
+    await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
+    await hass.async_block_till_done()
+
+    # Set up the scene entity for the turn_on call
+    hass.states.async_set(
+        "scene.external_test",
+        "scening",
+        {"friendly_name": "External Scene"},
+    )
+
+    result = await mock_config_entry_external.start_reconfigure_flow(hass)
+
+    # Submit with different entities - should go to learn step
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {
+            CONF_NUMBER_TOLERANCE: 1,
+            CONF_RESTORE_STATES_ON_DEACTIVATE: False,
+            CONF_TRANSITION_TIME: 1.0,
+            CONF_DEBOUNCE_TIME: 0.0,
+            CONF_IGNORE_UNAVAILABLE: False,
+            CONF_SCENE_ENTITIES: ["light.living_room"],  # removed bedroom
+        },
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "reconfigure_external_learn"
+
+    # Confirm the scene is active
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {CONF_EXTERNAL_SCENE_ACTIVE: True},
+    )
+
+    assert result["type"] == FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+
+    # Verify entities were re-learned (only living_room now)
+    assert "light.living_room" in mock_config_entry_external.data["entities"]
+    assert "light.bedroom" not in mock_config_entry_external.data["entities"]
