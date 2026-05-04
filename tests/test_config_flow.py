@@ -22,7 +22,7 @@ from custom_components.stateful_scenes.const import (
     DOMAIN,
 )
 
-from .const import MOCK_EXTERNAL_SCENE_DATA, MOCK_HUB_DATA, SCENES_YAML_CONTENT
+from .const import SCENES_YAML_CONTENT
 
 
 async def test_user_step_shows_menu(hass: HomeAssistant):
