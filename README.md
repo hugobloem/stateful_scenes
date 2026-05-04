@@ -80,5 +80,25 @@ To set this up, configure Stateful Scenes as normal. Then, any external scenes s
 
 As mentioned before this is an experimental feature. There are many different configurations out there and some hardware may behave differently than others. This may cause issues in setting up this feature. 
 
+## Reconfiguring Entries
+You can reconfigure any Stateful Scenes entry without removing and re-adding it. Go to the integration page, click the three-dot menu on the entry you want to change, and select **Reconfigure**.
+
+### Hub entries
+For hub entries, the reconfigure flow lets you update:
+- Scene path
+- Number tolerance
+- Restore on deactivation
+- Transition time
+- Debounce time
+- Ignore unavailable
+- Enable discovery
+
+### External scene entries
+For external scene entries, reconfiguration allows you to:
+- Update the number tolerance
+- Change which entities are controlled by the scene
+
+If you change the entity list, the scene will be re-activated so the integration can re-learn the new entity states—the same process as the initial setup.
+
 ## HomeKit configuration
 Once you have configured this integration, you can add the scenes to HomeKit. I assume that you already set up and configured the HomeKit integration. Expose the newly added switches to HomeKit. Then, in HomeKit define scenes for each Stateful Scenes switch.
