@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.8.0](https://github.com/hugobloem/stateful_scenes/compare/v1.7.9...v1.8.0) (2026-05-04)
+
+
+### 🚀 Features
+
+* add entry removal cleanup and reconfigure flow ([#252](https://github.com/hugobloem/stateful_scenes/issues/252)) ([13ad68b](https://github.com/hugobloem/stateful_scenes/commit/13ad68bee201dd61c9e586f8cb15a7c08039256c))
+
+
+### 🐛 Bugfixes
+
+* debounce time having no effect when transition time is zero ([#255](https://github.com/hugobloem/stateful_scenes/issues/255)) ([06c27de](https://github.com/hugobloem/stateful_scenes/commit/06c27def9c34de254eb720b530f1f8ef210af55e))
+* Off Scene selector unavailable for scenes with special characters in name ([#254](https://github.com/hugobloem/stateful_scenes/issues/254)) ([edcd955](https://github.com/hugobloem/stateful_scenes/commit/edcd955102e9df895705a4cc5da7b27d43ca1b82))
+
+
+### 📝 Documentation
+
+* add reconfigure option documentation to README ([#256](https://github.com/hugobloem/stateful_scenes/issues/256)) ([bf55dd4](https://github.com/hugobloem/stateful_scenes/commit/bf55dd45eb8898f430ac677658a546a920351748))
+
 ## [1.7.9](https://github.com/hugobloem/stateful_scenes/compare/v1.7.8...v1.7.9) (2026-05-01)
 
 
