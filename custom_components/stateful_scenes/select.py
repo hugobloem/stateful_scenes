@@ -23,8 +23,10 @@ from homeassistant.core import (
 )
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import slugify
 
 from .const import (
     DEFAULT_OFF_SCENE_ENTITY_ID,
@@ -202,9 +204,16 @@ class StatefulSceneOffSelect(SelectEntity, RestoreEntity):
             )
 
         # Set up callback for future state changes
-        restore_entity_id = (
-            f"switch.{self._scene.name.lower().replace(' ', '_')}_restore_on_deactivate"
+        restore_unique_id = f"{self._scene.id}_restore_on_deactivate"
+        ent_reg = async_get_entity_registry(self.hass)
+        restore_entity_id = ent_reg.async_get_entity_id(
+            "switch", DOMAIN, restore_unique_id
         )
+        if not restore_entity_id:
+            # Fall back to slugified name if entity not yet registered
+            restore_entity_id = (
+                f"switch.{slugify(f'{self._scene.name} Restore On Deactivate')}"
+            )
         async_track_state_change_event(
             self.hass, [restore_entity_id], self.async_update_restore_state
         )
