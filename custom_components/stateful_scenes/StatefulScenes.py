@@ -67,15 +67,16 @@ class SceneEvaluationTimer:
     async def async_start(self, callback) -> None:
         """Start a new timer if we have a duration."""
         await self.async_cancel_if_active()
-        if self.transition_time > 0 and self._hass is not None:
+        total_time = self.transition_time + self.debounce_time
+        if total_time > 0 and self._hass is not None:
             _LOGGER.debug(
                 "Starting scene evaluation timer for %s seconds",
-                self.transition_time + self.debounce_time,
+                total_time,
             )
 
             self._cancel_callback = async_call_later(
                 self._hass,
-                self.transition_time + self.debounce_time,
+                total_time,
                 callback,
             )
 
