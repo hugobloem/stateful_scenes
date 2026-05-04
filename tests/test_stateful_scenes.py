@@ -404,11 +404,32 @@ class TestSceneEvaluationTimer:
         await timer.async_cancel_if_active()
 
     async def test_timer_does_not_start_with_zero_transition(self, hass: HomeAssistant):
-        """Test timer does not start when transition time is 0."""
+        """Test timer does not start when both transition and debounce time are 0."""
         timer = SceneEvaluationTimer(hass, 0.0, 0.0)
         callback = AsyncMock()
         await timer.async_start(callback)
         assert timer.is_active() is False
+
+    async def test_timer_starts_with_debounce_only(self, hass: HomeAssistant):
+        """Test timer starts when transition time is 0 but debounce time > 0.
+
+        Regression test for https://github.com/.../issues/233:
+        When transition time was 0 but debounce time was set, the timer would
+        not start, making debounce ineffective.
+        """
+        timer = SceneEvaluationTimer(hass, 0.0, 5.0)
+        callback = AsyncMock()
+        await timer.async_start(callback)
+        assert timer.is_active() is True
+        await timer.async_cancel_if_active()
+
+    async def test_timer_duration_debounce_only(self, hass: HomeAssistant):
+        """Test timer uses only debounce time when transition is 0."""
+        timer = SceneEvaluationTimer(hass, 0.0, 3.0)
+        callback = AsyncMock()
+        await timer.async_start(callback)
+        assert timer.is_active() is True
+        await timer.async_cancel_if_active()
 
     async def test_timer_cancel(self, hass: HomeAssistant):
         """Test cancelling an active timer."""
