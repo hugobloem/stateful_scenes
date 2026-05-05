@@ -3,7 +3,7 @@ name = "stateful-scenes"
 version = "1.8.0"
 requires-python = ">=3.14.2"
 dependencies = [
-    "homeassistant==2026.5.0b0",
+    "homeassistant==2026.5.0b1",
     "aiofiles",
 ]
 
