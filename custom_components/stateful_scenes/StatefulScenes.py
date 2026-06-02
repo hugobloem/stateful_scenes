@@ -118,9 +118,10 @@ class SceneEvaluationTimer:
 class Scene:
     """State scene class."""
 
-    def __init__(self, hass: HomeAssistant, scene_conf: dict) -> None:
+    def __init__(self, hass: HomeAssistant, scene_conf: dict, config_entry: ConfigEntry | None = None) -> None:
         """Initialize."""
         self.hass = hass
+        self.config_entry = config_entry
         self.name: str = scene_conf[CONF_SCENE_NAME]
         self._entity_id: str = scene_conf[CONF_SCENE_ENTITY_ID]
         self._number_tolerance = scene_conf[CONF_SCENE_NUMBER_TOLERANCE]
@@ -635,6 +636,33 @@ class Scene:
             conf[entity].update(state.attributes)
         return conf
 
+    async def async_update_scene_definition(self):
+        """Update the scene definition from current entity states."""
+        for entity_id in self.entities:
+            state = self.hass.states.get(entity_id)
+            if state is None:
+                _LOGGER.warning("Scene %s: Entity %s not found in state machine", self.name, entity_id)
+                continue
+
+            entity_conf = {"state": state.state}
+
+            if state.domain in ATTRIBUTES_TO_CHECK:
+                for attribute in ATTRIBUTES_TO_CHECK.get(state.domain):
+                    if attribute in state.attributes:
+                        entity_conf[attribute] = state.attributes[attribute]
+
+            self.entities[entity_id] = entity_conf
+
+        _LOGGER.info("Updated scene definition for %s: %s", self.name, self.entities)
+
+        if self.config_entry:
+            new_data = self.config_entry.data.copy()
+            new_data[CONF_SCENE_ENTITIES] = self.entities
+            self.hass.config_entries.async_update_entry(self.config_entry, data=new_data)
+            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+
+        await self.async_check_all_states()
+
 
 class Hub:
     """State scene class."""
@@ -777,3 +805,4 @@ class Hub:
         return next(
             (scene for scene in self.scenes if scene.entity_id == scene_id), None
         )
+

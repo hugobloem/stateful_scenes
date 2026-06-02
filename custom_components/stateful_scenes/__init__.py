@@ -24,6 +24,7 @@ from .StatefulScenes import Hub, Scene
 from .helpers import async_cleanup_orphaned_entities
 
 PLATFORMS: list[Platform] = [
+    Platform.BUTTON,
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SWITCH,
@@ -59,7 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     else:
-        scene = Scene(hass, entry.data)
+        scene = Scene(hass, entry.data, config_entry=entry)
         hass.data[DOMAIN][entry.entry_id] = scene
 
         # Clean up orphaned entities for single scene setup
