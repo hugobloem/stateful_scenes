@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 
 import aiofiles
@@ -23,11 +24,31 @@ from .discovery import DiscoveryManager
 from .StatefulScenes import Hub, Scene
 from .helpers import async_cleanup_orphaned_entities
 
+_LOGGER = logging.getLogger(__name__)
+
 PLATFORMS: list[Platform] = [
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SWITCH,
 ]
+
+
+def _get_registered_scene_ids(hass: HomeAssistant, exclude_entry_id: str) -> set[str]:
+    """Return scene ids already registered by other loaded config entries.
+
+    Used to avoid setting up scenes whose id is already claimed by another
+    Stateful Scenes config entry, which would otherwise create entities with
+    duplicate unique_ids (see hugobloem/stateful_scenes#209).
+    """
+    scene_ids: set[str] = set()
+    for other_entry_id, entry_data in hass.data.get(DOMAIN, {}).items():
+        if other_entry_id == exclude_entry_id:
+            continue
+        if isinstance(entry_data, Hub):
+            scene_ids.update(scene.id for scene in entry_data.scenes)
+        elif isinstance(entry_data, Scene):
+            scene_ids.add(entry_data.id)
+    return scene_ids
 
 
 # https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
@@ -50,6 +71,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             scene_confs=scene_confs,
             number_tolerance=entry.data[CONF_NUMBER_TOLERANCE],
         )
+
+        # Skip scenes whose id is already claimed by another loaded config
+        # entry (e.g. a second Hub pointing at an overlapping scenes file)
+        # to avoid registering entities with duplicate unique_ids (#209).
+        registered_scene_ids = _get_registered_scene_ids(hass, entry.entry_id)
+        duplicate_scenes = [
+            scene for scene in hub.scenes if scene.id in registered_scene_ids
+        ]
+        for scene in duplicate_scenes:
+            _LOGGER.warning(
+                "Scene '%s' (id: %s) is already registered by another "
+                "Stateful Scenes config entry; skipping to avoid duplicate "
+                "entities",
+                scene.name,
+                scene.id,
+            )
+        if duplicate_scenes:
+            hub.scenes = [
+                scene for scene in hub.scenes if scene.id not in registered_scene_ids
+            ]
+
         hass.data[DOMAIN][entry.entry_id] = hub
 
         # Clean up orphaned entities for removed scenes
