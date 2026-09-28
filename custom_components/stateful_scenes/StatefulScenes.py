@@ -415,7 +415,7 @@ class Scene:
                     self.name,
                     entity_id,
                 )
-                return False
+                return None if self.ignore_unavailable else False
 
             # Check if entity exists in state
             new_state = self.hass.states.get(entity_id)
@@ -425,7 +425,7 @@ class Scene:
                     self.name,
                     entity_id,
                 )
-                return False
+                return None if self.ignore_unavailable else False
 
         if self.ignore_unavailable and new_state.state == "unavailable":
             return None
