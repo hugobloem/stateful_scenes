@@ -148,6 +148,33 @@ class TestSceneStateChecking:
         result = await scene.async_check_state("light.test_light", state)
         assert result is False
 
+    async def test_check_state_removed_entity_ignored(self, hass: HomeAssistant):
+        """Test an entity that no longer exists is ignored when ignoring unavailable."""
+        scene = Scene(hass, SCENE_CONF_MINIMAL)
+        scene.set_ignore_unavailable(True)
+        result = await scene.async_check_state("light.test_light", None)
+        assert result is None
+
+    async def test_check_state_removed_entity_not_ignored(self, hass: HomeAssistant):
+        """Test an entity that no longer exists fails when not ignoring unavailable."""
+        scene = Scene(hass, SCENE_CONF_MINIMAL)
+        scene.set_ignore_unavailable(False)
+        result = await scene.async_check_state("light.test_light", None)
+        assert result is False
+
+    async def test_check_state_desired_unavailable_is_dont_care(
+        self, hass: HomeAssistant
+    ):
+        """Test a scene captured while an entity was down does not block the scene."""
+        hass.states.async_set("light.test_light", "off", {})
+        conf = SCENE_CONF_MINIMAL.copy()
+        conf["entities"] = {"light.test_light": {"state": "unavailable"}}
+        scene = Scene(hass, conf)
+        state = hass.states.get("light.test_light")
+        # Not ignoring unavailable, so this must hold regardless of that switch
+        result = await scene.async_check_state("light.test_light", state)
+        assert result is None
+
     async def test_check_all_states_all_on(
         self, hass: HomeAssistant, mock_light_entities
     ):
