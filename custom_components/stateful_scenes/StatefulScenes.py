@@ -3,6 +3,7 @@
 import logging
 from typing import Any
 
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
 from homeassistant.helpers import area_registry as ar, entity_registry as er
 from homeassistant.helpers.event import async_call_later
@@ -427,7 +428,7 @@ class Scene:
                 )
                 return None if self.ignore_unavailable else False
 
-        if self.ignore_unavailable and new_state.state == "unavailable":
+        if self.ignore_unavailable and new_state.state == STATE_UNAVAILABLE:
             return None
 
         # Skip comparison if desired state is None (treat as "don't care")
@@ -436,6 +437,18 @@ class Scene:
             _LOGGER.debug(
                 "[%s] Desired state is None for %s, treating as 'don't care'",
                 self.name,
+                entity_id,
+            )
+            return None
+
+        # A scene captured while an entity was down stores "unavailable" as the
+        # desired state. Applying the scene can never reproduce that, so the
+        # scene would be permanently unmatched. Treat it as "don't care".
+        if desired_state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            _LOGGER.debug(
+                "[%s] Desired state is %s for %s, treating as 'don't care'",
+                self.name,
+                desired_state,
                 entity_id,
             )
             return None
