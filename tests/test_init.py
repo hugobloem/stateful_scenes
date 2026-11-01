@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 import os
 
 import pytest
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry, entity_registry
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -20,6 +22,8 @@ from custom_components.stateful_scenes.const import (
     StatefulScenesYamlNotFound,
 )
 from custom_components.stateful_scenes.StatefulScenes import Hub, Scene
+
+from .const import MOCK_HUB_DATA
 
 
 async def test_async_setup_entry_hub(
@@ -132,6 +136,92 @@ async def test_external_recaptures_do_not_mutate_saved_definitions(
     reloaded_scene = hass.data[DOMAIN][mock_config_entry_external.entry_id]
     assert reloaded_scene is not scene
     assert reloaded_scene.entities["light.living_room"]["brightness"] == 150
+
+
+async def test_async_setup_entry_hub_skips_already_registered_scene_ids(
+    hass: HomeAssistant, mock_scenes_yaml, mock_scene_entities, caplog
+):
+    """Two Hub entries loading overlapping scene ids must not duplicate entities.
+
+    Regression test for https://github.com/hugobloem/stateful_scenes/issues/209:
+    "Platform stateful_scenes does not generate unique IDs" log spam on startup,
+    caused by a second Stateful Scenes config entry registering number/select/
+    switch entities whose unique_id (derived from the underlying scene id) was
+    already claimed by another loaded entry.
+    """
+    entry1 = MockConfigEntry(domain=DOMAIN, data=MOCK_HUB_DATA, title="Hub 1")
+    entry1.add_to_hass(hass)
+    entry2 = MockConfigEntry(domain=DOMAIN, data=MOCK_HUB_DATA, title="Hub 2")
+    entry2.add_to_hass(hass)
+
+    # Setting up the first entry causes Home Assistant to also bootstrap any
+    # other not-yet-loaded config entries for this domain (mirroring what
+    # happens for real on a Home Assistant restart with two Hub entries).
+    caplog.clear()
+    with caplog.at_level(logging.ERROR):
+        assert await hass.config_entries.async_setup(entry1.entry_id)
+        await hass.async_block_till_done()
+
+    assert entry1.state is ConfigEntryState.LOADED
+    assert entry2.state is ConfigEntryState.LOADED
+
+    duplicate_id_errors = [
+        record
+        for record in caplog.records
+        if record.levelno >= logging.ERROR
+        and "does not generate unique IDs" in record.message
+    ]
+    assert not duplicate_id_errors, (
+        "Setting up a second Hub entry with overlapping scene ids must not "
+        f"trigger duplicate unique ID errors, got: "
+        f"{[r.message for r in duplicate_id_errors]}"
+    )
+
+    # Home Assistant sets both entries up concurrently, so either one may
+    # claim the scenes first. Exactly one hub must own them and the other
+    # must not attempt to re-register any of them.
+    hub_scene_ids = sorted(
+        [scene.id for scene in hass.data[DOMAIN][entry.entry_id].scenes]
+        for entry in (entry1, entry2)
+    )
+    assert hub_scene_ids == [[], ["1001", "1002"]]
+
+
+async def test_losing_hub_entry_does_not_remove_entities_it_owns(
+    hass: HomeAssistant, mock_scenes_yaml, mock_scene_entities
+):
+    """The entry whose scenes were already claimed must not delete its entities.
+
+    Which of two overlapping Hub entries claims the scenes first is not
+    deterministic across restarts, so the registry rows may still belong to
+    the entry that loses this time. Its orphan cleanup must not treat the
+    skipped scenes as removed, or it would delete those rows on every
+    restart where the winner changes.
+    """
+    entry1 = MockConfigEntry(domain=DOMAIN, data=MOCK_HUB_DATA, title="Hub 1")
+    entry1.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry1.entry_id)
+    await hass.async_block_till_done()
+
+    # The registry says entry2 owned these on a previous boot.
+    entry2 = MockConfigEntry(domain=DOMAIN, data=MOCK_HUB_DATA, title="Hub 2")
+    entry2.add_to_hass(hass)
+    er = entity_registry.async_get(hass)
+    owned_by_entry2 = {
+        unique_id: er.async_get_or_create(
+            "number", DOMAIN, unique_id, config_entry=entry2
+        ).id
+        for unique_id in ("1001_transition_time", "1002_transition_time")
+    }
+
+    assert await hass.config_entries.async_setup(entry2.entry_id)
+    await hass.async_block_till_done()
+
+    assert hass.data[DOMAIN][entry2.entry_id].scenes == []
+    for unique_id, registry_id in owned_by_entry2.items():
+        entity_id = er.async_get_entity_id("number", DOMAIN, unique_id)
+        assert entity_id is not None, f"{unique_id} was removed"
+        assert er.async_get(entity_id).id == registry_id
 
 
 async def test_async_setup_entry_external_scene(
