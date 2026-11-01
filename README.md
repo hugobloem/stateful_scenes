@@ -109,3 +109,8 @@ modify the YAML file.
 
 ## HomeKit configuration
 Once you have configured this integration, you can add the scenes to HomeKit. I assume that you already set up and configured the HomeKit integration. Expose the newly added switches to HomeKit. Then, in HomeKit define scenes for each Stateful Scenes switch.
+
+## Development
+Python 3.14 is pinned in `.python-version` to match Home Assistant. uv reads this
+file for local development and both CI test workflows, downloading a matching
+interpreter when needed. Run the tests with `uv run pytest`.
