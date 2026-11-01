@@ -343,18 +343,14 @@ async def test_async_remove_entry_cleans_up_entities_and_devices(
     )
 
     # Verify entity and device exist
-    entities_before = [
-        e
-        for e in er.entities.values()
-        if e.config_entry_id == mock_config_entry_external.entry_id
-    ]
+    entities_before = entity_registry.async_entries_for_config_entry(
+        er, mock_config_entry_external.entry_id
+    )
     assert len(entities_before) >= 1
 
-    devices_before = [
-        d
-        for d in dr.devices.values()
-        if mock_config_entry_external.entry_id in d.config_entries
-    ]
+    devices_before = device_registry.async_entries_for_config_entry(
+        dr, mock_config_entry_external.entry_id
+    )
     assert len(devices_before) >= 1
 
     # Unload then remove
@@ -364,19 +360,15 @@ async def test_async_remove_entry_cleans_up_entities_and_devices(
     await async_remove_entry(hass, mock_config_entry_external)
 
     # Verify entities are removed
-    entities_after = [
-        e
-        for e in er.entities.values()
-        if e.config_entry_id == mock_config_entry_external.entry_id
-    ]
+    entities_after = entity_registry.async_entries_for_config_entry(
+        er, mock_config_entry_external.entry_id
+    )
     assert len(entities_after) == 0
 
     # Verify devices are removed
-    devices_after = [
-        d
-        for d in dr.devices.values()
-        if mock_config_entry_external.entry_id in d.config_entries
-    ]
+    devices_after = device_registry.async_entries_for_config_entry(
+        dr, mock_config_entry_external.entry_id
+    )
     assert len(devices_after) == 0
 
 
@@ -428,16 +420,12 @@ async def test_async_remove_entry_hub(
     await async_remove_entry(hass, mock_config_entry_hub)
 
     # Verify cleanup
-    entities_after = [
-        e
-        for e in er.entities.values()
-        if e.config_entry_id == mock_config_entry_hub.entry_id
-    ]
+    entities_after = entity_registry.async_entries_for_config_entry(
+        er, mock_config_entry_hub.entry_id
+    )
     assert len(entities_after) == 0
 
-    devices_after = [
-        d
-        for d in dr.devices.values()
-        if mock_config_entry_hub.entry_id in d.config_entries
-    ]
+    devices_after = device_registry.async_entries_for_config_entry(
+        dr, mock_config_entry_hub.entry_id
+    )
     assert len(devices_after) == 0
