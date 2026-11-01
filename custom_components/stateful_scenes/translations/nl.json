@@ -16,6 +16,7 @@
                     "number_tolerance": "Afrondingstolerantie",
                     "restore_states_on_deactivate": "Status herstellen bij deactivering",
                     "transition_time": "Transitie tijd",
+                    "debounce_time": "Debouncetijd",
                     "enable_discovery": "Ontdekking inschakelen",
                     "ignore_unavailable": "Negeer entiteiten in niet-beschikbare staat"
                 }
