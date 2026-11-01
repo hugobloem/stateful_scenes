@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.9.0](https://github.com/hugobloem/stateful_scenes/compare/v1.8.0...v1.9.0) (2026-11-01)
+
+
+### 🚀 Features
+
+* add button to recapture scene state ([8a3869d](https://github.com/hugobloem/stateful_scenes/commit/8a3869d68489e0d064b8dd0e021e571797293268))
+
+
+### 🐛 Bugfixes
+
+* detect incremental scene attribute changes ([#320](https://github.com/hugobloem/stateful_scenes/issues/320)) ([2cab511](https://github.com/hugobloem/stateful_scenes/commit/2cab5111968c33f66aae0f69de5f5e03419a85bd))
+* handle unavailable and removed scene entities ([#310](https://github.com/hugobloem/stateful_scenes/issues/310)) ([b707502](https://github.com/hugobloem/stateful_scenes/commit/b707502266534452f03fd41e4c2dbc52046c6177))
+* **i18n:** add missing Dutch debounce_time label ([#311](https://github.com/hugobloem/stateful_scenes/issues/311)) ([2ecde50](https://github.com/hugobloem/stateful_scenes/commit/2ecde50926c93436aa09fef504377cf4048323df))
+* replace deprecated registry mapping usage ([#318](https://github.com/hugobloem/stateful_scenes/issues/318)) ([f6f5b42](https://github.com/hugobloem/stateful_scenes/commit/f6f5b42ce0a7b5fa41bb6bc327e44e209cf03a96))
+* skip scenes with duplicate ids across Stateful Scenes entries ([#301](https://github.com/hugobloem/stateful_scenes/issues/301)) ([3a12da5](https://github.com/hugobloem/stateful_scenes/commit/3a12da5ce82c8fc3d0640346869f2687e87ac688))
+
+
+### 🔧 Miscellaneous Chores
+
+* **deps-dev:** bump ruff from 0.15.12 to 0.17.3 ([#315](https://github.com/hugobloem/stateful_scenes/issues/315)) ([80f8b4b](https://github.com/hugobloem/stateful_scenes/commit/80f8b4bb158636e44df0abd92a749b4bb6ab4e7b))
+* **deps:** bump actions/checkout from 6 to 7 ([#281](https://github.com/hugobloem/stateful_scenes/issues/281)) ([1323178](https://github.com/hugobloem/stateful_scenes/commit/13231789ba323ad397b74a945abc715b765c249c))
+* **deps:** bump homeassistant from 2026.5.0b0 to 2026.8.3 ([#309](https://github.com/hugobloem/stateful_scenes/issues/309)) ([be66cd3](https://github.com/hugobloem/stateful_scenes/commit/be66cd3f591f66064c2695b5fef88ad3703b48ff))
+* **deps:** restrict Dependabot updates to minor versions ([#314](https://github.com/hugobloem/stateful_scenes/issues/314)) ([70157d8](https://github.com/hugobloem/stateful_scenes/commit/70157d8e87e6b35c1ffd24f5c6d06946c004645d))
+* pin Python 3.14 for CI ([#317](https://github.com/hugobloem/stateful_scenes/issues/317)) ([5c47295](https://github.com/hugobloem/stateful_scenes/commit/5c47295612dbc7d19c2f3fd35594d1ddcc3f3925))
+
 ## [1.8.0](https://github.com/hugobloem/stateful_scenes/compare/v1.7.9...v1.8.0) (2026-05-04)
 
 
