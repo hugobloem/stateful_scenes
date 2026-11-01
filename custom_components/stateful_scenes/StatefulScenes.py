@@ -13,6 +13,7 @@ from homeassistant.helpers import area_registry as ar, entity_registry as er
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.template.helpers import resolve_area_id
 from .const import (
+    ATTRIBUTES_TO_ALWAYS_CHECK,
     ATTRIBUTES_TO_CHECK,
     CONF_SCENE_AREA,
     CONF_SCENE_ENTITIES,
@@ -411,7 +412,10 @@ class Scene:
                     continue
 
                 if not self.compare_values(
-                    old_entity_attrs[attribute], entity_attrs[attribute]
+                    old_entity_attrs[attribute],
+                    entity_attrs[attribute],
+                    ignore_tolerance=attribute
+                    in ATTRIBUTES_TO_ALWAYS_CHECK.get(new_state.domain, ()),
                 ):
                     return True
         return False
@@ -606,7 +610,7 @@ class Scene:
             domain="scene", service="apply", service_data=service_data
         )
 
-    def compare_values(self, value1, value2):
+    def compare_values(self, value1, value2, ignore_tolerance: bool = False):
         """Compare two values."""
         # Handle None values gracefully
         if value1 is None and value2 is None:
@@ -618,38 +622,40 @@ class Scene:
             return value1.lower() == value2.lower()
 
         if isinstance(value1, dict) and isinstance(value2, dict):
-            return self.compare_dicts(value1, value2)
+            return self.compare_dicts(value1, value2, ignore_tolerance)
 
         if (isinstance(value1, list) or isinstance(value1, tuple)) and (
             isinstance(value2, list) or isinstance(value2, tuple)
         ):
-            return self.compare_lists(value1, value2)
+            return self.compare_lists(value1, value2, ignore_tolerance)
 
         if (isinstance(value1, int) or isinstance(value1, float)) and (
             isinstance(value2, int) or isinstance(value2, float)
         ):
-            return self.compare_numbers(value1, value2)
+            return self.compare_numbers(value1, value2, ignore_tolerance)
 
         return value1 == value2
 
-    def compare_dicts(self, dict1, dict2):
+    def compare_dicts(self, dict1, dict2, ignore_tolerance: bool = False):
         """Compare two dicts."""
         for key, value in dict1.items():
             if key not in dict2:
                 return False
-            if not self.compare_values(value, dict2[key]):
+            if not self.compare_values(value, dict2[key], ignore_tolerance):
                 return False
         return True
 
-    def compare_lists(self, list1, list2):
+    def compare_lists(self, list1, list2, ignore_tolerance: bool = False):
         """Compare two lists."""
         for value1, value2 in zip(list1, list2):
-            if not self.compare_values(value1, value2):
+            if not self.compare_values(value1, value2, ignore_tolerance):
                 return False
         return True
 
-    def compare_numbers(self, number1, number2):
+    def compare_numbers(self, number1, number2, ignore_tolerance: bool = False):
         """Compare two numbers."""
+        if ignore_tolerance:
+            return number1 == number2
         return abs(number1 - number2) <= self.number_tolerance
 
     @staticmethod
