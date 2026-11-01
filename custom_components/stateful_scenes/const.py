@@ -62,6 +62,11 @@ ATTRIBUTES_TO_CHECK = {
     "climate": {"system_mode", "temperature"},
 }
 
+# These attributes trigger reevaluation on any change, regardless of tolerance.
+ATTRIBUTES_TO_ALWAYS_CHECK = {
+    "cover": {"current_position"},
+}
+
 DEVICE_INFO_MANUFACTURER = "Stateful Scenes"
 
 

@@ -7,7 +7,10 @@ from unittest.mock import AsyncMock
 import pytest
 from homeassistant.core import HomeAssistant, ServiceCall
 
-from custom_components.stateful_scenes.const import StatefulScenesYamlInvalid
+from custom_components.stateful_scenes.const import (
+    ATTRIBUTES_TO_ALWAYS_CHECK,
+    StatefulScenesYamlInvalid,
+)
 from custom_components.stateful_scenes.StatefulScenes import (
     Hub,
     Scene,
@@ -55,6 +58,23 @@ class TestCompareValues:
         scene = self._make_scene(hass)
         assert scene.compare_values(100, 102) is False
         assert scene.compare_values(100, 98) is False
+
+    @pytest.mark.parametrize(
+        ("value1", "value2"),
+        [
+            (100, 101),
+            ({"position": 100}, {"position": 101}),
+            ([100], [101]),
+        ],
+    )
+    async def test_compare_values_can_ignore_tolerance(
+        self, hass: HomeAssistant, value1, value2
+    ):
+        """Tolerance can be bypassed for values and nested numeric attributes."""
+        scene = self._make_scene(hass)
+        scene.set_number_tolerance(5)
+
+        assert scene.compare_values(value1, value2, ignore_tolerance=True) is False
 
     async def test_compare_numbers_float(self, hass: HomeAssistant):
         """Test float number comparison."""
@@ -108,6 +128,50 @@ class TestCompareValues:
 
 class TestSceneStateChecking:
     """Tests for Scene state checking."""
+
+    @pytest.mark.parametrize(
+        ("position", "expected"), [(40, False), (41, True), (45, True)]
+    )
+    async def test_cover_position_update_filtering(
+        self, hass: HomeAssistant, position: int, expected: bool
+    ):
+        """Small position changes must still trigger scene reevaluation."""
+        conf = SCENE_CONF_MINIMAL.copy()
+        conf["number_tolerance"] = 5
+        conf["entities"] = {"cover.blinds": {"state": "open", "current_position": 50}}
+        scene = Scene(hass, conf)
+
+        hass.states.async_set("cover.blinds", "open", {"current_position": 40})
+        old_state = hass.states.get("cover.blinds")
+        hass.states.async_set("cover.blinds", "open", {"current_position": position})
+        new_state = hass.states.get("cover.blinds")
+
+        assert scene.is_interesting_update(old_state, new_state) is expected
+
+    @pytest.mark.parametrize("always_check", [False, True])
+    async def test_attribute_update_filtering_uses_always_check_constant(
+        self, hass: HomeAssistant, monkeypatch: pytest.MonkeyPatch, always_check: bool
+    ):
+        """Only attributes opted into the constant bypass tolerance filtering."""
+        if always_check:
+            monkeypatch.setitem(ATTRIBUTES_TO_ALWAYS_CHECK, "light", {"brightness"})
+        conf = SCENE_CONF_MINIMAL.copy()
+        conf["number_tolerance"] = 5
+        conf["entities"] = {
+            "light.test_light": {"state": "on", "brightness": 100}
+        }
+        scene = Scene(hass, conf)
+
+        hass.states.async_set(
+            "light.test_light", "on", {"brightness": 100}
+        )
+        old_state = hass.states.get("light.test_light")
+        hass.states.async_set(
+            "light.test_light", "on", {"brightness": 101}
+        )
+        new_state = hass.states.get("light.test_light")
+
+        assert scene.is_interesting_update(old_state, new_state) is always_check
 
     async def test_check_state_matching(self, hass: HomeAssistant, mock_light_entities):
         """Test entity state matches scene definition."""
