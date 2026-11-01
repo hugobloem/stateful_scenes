@@ -517,6 +517,22 @@ class TestHub:
         assert hub.scenes[0].name == "Test Scene 1"
         assert hub.scenes[1].name == "Test Scene 2"
 
+    async def test_hub_overrides_replace_attributes_and_preserve_yaml_membership(
+        self, hass: HomeAssistant, mock_scene_entities
+    ):
+        """Test overrides remove stale attributes without changing YAML membership."""
+        overrides = {
+            "1001": {
+                "light.living_room": {"state": "on"},
+                "light.removed": {"state": "off"},
+            }
+        }
+        hub = Hub(hass, SCENE_YAML_RAW, scene_overrides=overrides)
+        assert hub.scenes[0].entities["light.living_room"] == {"state": "on"}
+        assert hub.scenes[0].entities["light.bedroom"] == {"state": "off"}
+        assert "light.removed" not in hub.scenes[0].entities
+        assert hub.scenes[1].entities["light.living_room"]["brightness"] == 128
+
     async def test_hub_validate_scene_valid(
         self, hass: HomeAssistant, mock_scene_entities
     ):

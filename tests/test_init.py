@@ -16,6 +16,7 @@ from custom_components.stateful_scenes import (
     load_scenes_file,
 )
 from custom_components.stateful_scenes.const import (
+    CONF_SCENE_OVERRIDES,
     DOMAIN,
     StatefulScenesYamlInvalid,
     StatefulScenesYamlNotFound,
@@ -40,6 +41,101 @@ async def test_async_setup_entry_hub(
     assert len(hub.scenes) == 2
     assert hub.scenes[0].name == "Test Scene 1"
     assert hub.scenes[1].name == "Test Scene 2"
+
+
+async def test_hub_recaptured_definition_persists_and_updates_switch(
+    hass: HomeAssistant,
+    mock_config_entry_hub: MockConfigEntry,
+    mock_scene_entities,
+    mock_light_entities,
+):
+    """Test recaptured hub definitions persist and update the scene switch."""
+    await hass.config_entries.async_setup(mock_config_entry_hub.entry_id)
+    await hass.async_block_till_done()
+
+    hub = hass.data[DOMAIN][mock_config_entry_hub.entry_id]
+    scene = hub.scenes[0]
+    hass.states.async_set(
+        "light.living_room",
+        "on",
+        {"brightness": 100, "friendly_name": "Living Room Light"},
+    )
+    await hass.async_block_till_done()
+
+    switch_entity_id = entity_registry.async_get(hass).async_get_entity_id(
+        "switch", DOMAIN, "stateful_1001"
+    )
+    assert switch_entity_id is not None
+    assert hass.states.get(switch_entity_id).state == "off"
+
+    await scene.async_update_scene_definition()
+    await hass.async_block_till_done()
+
+    assert mock_config_entry_hub.data[CONF_SCENE_OVERRIDES]["1001"][
+        "light.living_room"
+    ]["brightness"] == 100
+    assert scene.is_on
+
+    assert hass.states.get(switch_entity_id).state == "on"
+
+    previous_data = mock_config_entry_hub.data
+    hass.states.async_set("light.living_room", "on", {"brightness": 150})
+    await scene.async_update_scene_definition()
+    await hass.async_block_till_done()
+
+    assert previous_data[CONF_SCENE_OVERRIDES]["1001"]["light.living_room"][
+        "brightness"
+    ] == 100
+    assert mock_config_entry_hub.data is not previous_data
+
+    assert await hass.config_entries.async_reload(mock_config_entry_hub.entry_id)
+    await hass.async_block_till_done()
+    reloaded_hub = hass.data[DOMAIN][mock_config_entry_hub.entry_id]
+    assert reloaded_hub is not hub
+    assert reloaded_hub.scenes[0].entities["light.living_room"]["brightness"] == 150
+    assert hass.states.get(switch_entity_id).state == "on"
+
+
+async def test_external_recaptures_do_not_mutate_saved_definitions(
+    hass: HomeAssistant,
+    mock_config_entry_external: MockConfigEntry,
+    mock_light_entities,
+):
+    """Test each external recapture is detected as a new config-entry update."""
+    await hass.config_entries.async_setup(mock_config_entry_external.entry_id)
+    await hass.async_block_till_done()
+    scene = hass.data[DOMAIN][mock_config_entry_external.entry_id]
+    registry = entity_registry.async_get(hass)
+    button_entity_id = registry.async_get_entity_id(
+        "button", DOMAIN, f"{scene.id}_recapture"
+    )
+    assert button_entity_id is not None
+
+    for brightness in (100, 150):
+        previous_data = mock_config_entry_external.data
+        previous_brightness = previous_data["entities"]["light.living_room"][
+            "brightness"
+        ]
+        hass.states.async_set("light.living_room", "on", {"brightness": brightness})
+        await hass.services.async_call(
+            "button", "press", {"entity_id": button_entity_id}, blocking=True
+        )
+        await hass.async_block_till_done()
+        assert previous_data["entities"]["light.living_room"][
+            "brightness"
+        ] == previous_brightness
+        assert mock_config_entry_external.data is not previous_data
+        assert mock_config_entry_external.data["entities"]["light.living_room"][
+            "brightness"
+        ] == brightness
+
+    assert await hass.config_entries.async_reload(
+        mock_config_entry_external.entry_id
+    )
+    await hass.async_block_till_done()
+    reloaded_scene = hass.data[DOMAIN][mock_config_entry_external.entry_id]
+    assert reloaded_scene is not scene
+    assert reloaded_scene.entities["light.living_room"]["brightness"] == 150
 
 
 async def test_async_setup_entry_hub_skips_already_registered_scene_ids(

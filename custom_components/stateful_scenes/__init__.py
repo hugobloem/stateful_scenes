@@ -15,6 +15,7 @@ from homeassistant.core import HomeAssistant
 from .const import (
     CONF_ENABLE_DISCOVERY,
     CONF_NUMBER_TOLERANCE,
+    CONF_SCENE_OVERRIDES,
     CONF_SCENE_PATH,
     DOMAIN,
     StatefulScenesYamlInvalid,
@@ -27,6 +28,7 @@ from .helpers import async_cleanup_orphaned_entities
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [
+    Platform.BUTTON,
     Platform.NUMBER,
     Platform.SELECT,
     Platform.SWITCH,
@@ -70,6 +72,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass=hass,
             scene_confs=scene_confs,
             number_tolerance=entry.data[CONF_NUMBER_TOLERANCE],
+            scene_overrides=entry.data.get(CONF_SCENE_OVERRIDES),
+            config_entry=entry,
         )
 
         # Scenes still in the file are not orphans, even when another entry
@@ -105,7 +109,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     else:
-        scene = Scene(hass, entry.data)
+        scene = Scene(hass, entry.data, config_entry=entry)
         hass.data[DOMAIN][entry.entry_id] = scene
 
         # Clean up orphaned entities for single scene setup

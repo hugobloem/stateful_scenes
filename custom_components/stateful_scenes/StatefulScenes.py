@@ -1,8 +1,12 @@
 """Stateful Scenes for Home Assistant."""
 
+from __future__ import annotations
+
 import logging
+from collections.abc import Awaitable, Callable
 from typing import Any
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
 from homeassistant.helpers import area_registry as ar, entity_registry as er
@@ -18,6 +22,7 @@ from .const import (
     CONF_SCENE_LEARN,
     CONF_SCENE_NAME,
     CONF_SCENE_NUMBER_TOLERANCE,
+    CONF_SCENE_OVERRIDES,
     SceneStateAttributes,
     StatefulScenesYamlInvalid,
 )
@@ -119,9 +124,18 @@ class SceneEvaluationTimer:
 class Scene:
     """State scene class."""
 
-    def __init__(self, hass: HomeAssistant, scene_conf: dict) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        scene_conf: dict,
+        config_entry: ConfigEntry | None = None,
+    ) -> None:
         """Initialize."""
         self.hass = hass
+        self.config_entry = config_entry
+        self.definition_update_callback: (
+            Callable[[Scene], Awaitable[None]] | None
+        ) = None
         self.name: str = scene_conf[CONF_SCENE_NAME]
         self._entity_id: str = scene_conf[CONF_SCENE_ENTITY_ID]
         self._number_tolerance = scene_conf[CONF_SCENE_NUMBER_TOLERANCE]
@@ -648,6 +662,42 @@ class Scene:
             conf[entity].update(state.attributes)
         return conf
 
+    async def async_update_scene_definition(self):
+        """Update the scene definition from current entity states."""
+        entities = self.entities.copy()
+        for entity_id in self.entities:
+            state = self.hass.states.get(entity_id)
+            if state is None:
+                _LOGGER.warning(
+                    "Scene %s: Entity %s not found in state machine",
+                    self.name,
+                    entity_id,
+                )
+                continue
+
+            entity_conf = {"state": state.state}
+
+            if state.domain in ATTRIBUTES_TO_CHECK:
+                for attribute in ATTRIBUTES_TO_CHECK.get(state.domain):
+                    if attribute in state.attributes:
+                        entity_conf[attribute] = state.attributes[attribute]
+
+            entities[entity_id] = entity_conf
+
+        self.entities = entities
+        _LOGGER.info("Updated scene definition for %s: %s", self.name, self.entities)
+
+        if self.definition_update_callback is not None:
+            await self.definition_update_callback(self)
+        elif self.config_entry is not None:
+            new_data = self.config_entry.data.copy()
+            new_data[CONF_SCENE_ENTITIES] = self.entities
+            self.hass.config_entries.async_update_entry(self.config_entry, data=new_data)
+
+        await self.async_check_all_states()
+        if self.schedule_update:
+            self.schedule_update(True)
+
 
 class Hub:
     """State scene class."""
@@ -657,6 +707,8 @@ class Hub:
         hass: HomeAssistant,
         scene_confs: dict[str, Any],
         number_tolerance: int = 1,
+        scene_overrides: dict[str, dict[str, dict[str, Any]]] | None = None,
+        config_entry: ConfigEntry | None = None,
     ) -> None:
         """Initialize the Hub class.
 
@@ -664,6 +716,8 @@ class Hub:
             hass (HomeAssistant): Home Assistant instance
             scene_confs (dict[str, Any]): Scene configurations from the scene file
             number_tolerance (int): Tolerance for comparing numbers
+            scene_overrides: Recaptured entity definitions keyed by scene ID
+            config_entry: Config entry used to persist recaptured definitions
 
         Raises:
             StatefulScenesYamlNotFound: If the yaml file is not found
@@ -672,19 +726,34 @@ class Hub:
         """
         self.number_tolerance = number_tolerance
         self.hass = hass
+        self.config_entry = config_entry
         self.scenes: list[Scene] = []
         self.scene_confs: list[dict[str, Any]] = []
 
         for scene_conf in scene_confs:
             if not self.validate_scene(scene_conf):
                 continue
-            self.scenes.append(
-                Scene(
-                    self.hass,
-                    self.extract_scene_configuration(scene_conf),
-                )
-            )
-            self.scene_confs.append(self.extract_scene_configuration(scene_conf))
+            extracted_conf = self.extract_scene_configuration(scene_conf)
+            scene = Scene(self.hass, extracted_conf)
+            if scene_overrides:
+                scene_override = scene_overrides.get(str(scene.id), {})
+                for entity_id in scene.entities:
+                    if entity_id in scene_override:
+                        scene.entities[entity_id] = dict(scene_override[entity_id])
+            if self.config_entry is not None:
+                scene.definition_update_callback = self.async_update_scene_definition
+            self.scenes.append(scene)
+            self.scene_confs.append(extracted_conf)
+
+    async def async_update_scene_definition(self, scene: Scene) -> None:
+        """Persist a recaptured scene definition as a config-entry override."""
+        assert self.config_entry is not None
+
+        new_data = self.config_entry.data.copy()
+        scene_overrides = dict(new_data.get(CONF_SCENE_OVERRIDES, {}))
+        scene_overrides[str(scene.id)] = scene.entities
+        new_data[CONF_SCENE_OVERRIDES] = scene_overrides
+        self.hass.config_entries.async_update_entry(self.config_entry, data=new_data)
 
     def validate_scene(self, scene_conf: dict) -> None:
         """Validate scene configuration.
