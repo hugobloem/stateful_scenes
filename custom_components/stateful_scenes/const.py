@@ -43,6 +43,7 @@ CONF_SCENE_ID = "id"
 CONF_SCENE_AREA = "area"
 CONF_SCENE_ENTITIES = "entities"
 CONF_SCENE_ICON = "icon"
+CONF_SCENE_OVERRIDES = "scene_overrides"
 
 
 TOLERANCE_MIN = 0

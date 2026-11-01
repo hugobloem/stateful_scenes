@@ -14,6 +14,7 @@ from homeassistant.core import HomeAssistant
 from .const import (
     CONF_ENABLE_DISCOVERY,
     CONF_NUMBER_TOLERANCE,
+    CONF_SCENE_OVERRIDES,
     CONF_SCENE_PATH,
     DOMAIN,
     StatefulScenesYamlInvalid,
@@ -50,6 +51,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass=hass,
             scene_confs=scene_confs,
             number_tolerance=entry.data[CONF_NUMBER_TOLERANCE],
+            scene_overrides=entry.data.get(CONF_SCENE_OVERRIDES),
+            config_entry=entry,
         )
         hass.data[DOMAIN][entry.entry_id] = hub
 

@@ -100,5 +100,12 @@ For external scene entries, reconfiguration allows you to:
 
 If you change the entity list, the scene will be re-activated so the integration can re-learn the new entity states—the same process as the initial setup.
 
+## Recapturing a scene
+
+Each scene device has a **Recapture Scene** button that saves the current states
+of its tracked entities as the scene's expected state. For scenes loaded from a
+YAML file, recaptured values are saved as integration overrides and do not
+modify the YAML file.
+
 ## HomeKit configuration
 Once you have configured this integration, you can add the scenes to HomeKit. I assume that you already set up and configured the HomeKit integration. Expose the newly added switches to HomeKit. Then, in HomeKit define scenes for each Stateful Scenes switch.
