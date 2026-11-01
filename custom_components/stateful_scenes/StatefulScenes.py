@@ -7,6 +7,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import Event, EventStateChangedData, HomeAssistant
 from homeassistant.helpers import area_registry as ar, entity_registry as er
 from homeassistant.helpers.event import async_call_later
@@ -417,6 +418,28 @@ class Scene:
 
     async def async_check_state(self, entity_id, new_state):
         """Check if entity's current state matches the scene's defined state."""
+        # Skip comparison if desired state is None (treat as "don't care")
+        desired_state = self.entities[entity_id]["state"]
+        if desired_state is None:
+            _LOGGER.debug(
+                "[%s] Desired state is None for %s, treating as 'don't care'",
+                self.name,
+                entity_id,
+            )
+            return None
+
+        # A scene captured while an entity was down stores "unavailable" as the
+        # desired state. Applying the scene can never reproduce that, so the
+        # scene would be permanently unmatched. Treat it as "don't care".
+        if desired_state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            _LOGGER.debug(
+                "[%s] Desired state is %s for %s, treating as 'don't care'",
+                self.name,
+                desired_state,
+                entity_id,
+            )
+            return None
+
         if new_state is None:
             # Check if entity exists in registry
             # Get entity registry directly
@@ -429,7 +452,7 @@ class Scene:
                     self.name,
                     entity_id,
                 )
-                return False
+                return None if self.ignore_unavailable else False
 
             # Check if entity exists in state
             new_state = self.hass.states.get(entity_id)
@@ -439,19 +462,9 @@ class Scene:
                     self.name,
                     entity_id,
                 )
-                return False
+                return None if self.ignore_unavailable else False
 
-        if self.ignore_unavailable and new_state.state == "unavailable":
-            return None
-
-        # Skip comparison if desired state is None (treat as "don't care")
-        desired_state = self.entities[entity_id]["state"]
-        if desired_state is None:
-            _LOGGER.debug(
-                "[%s] Desired state is None for %s, treating as 'don't care'",
-                self.name,
-                entity_id,
-            )
+        if self.ignore_unavailable and new_state.state == STATE_UNAVAILABLE:
             return None
 
         # Check state
