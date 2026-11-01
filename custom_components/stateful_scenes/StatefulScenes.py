@@ -404,6 +404,28 @@ class Scene:
 
     async def async_check_state(self, entity_id, new_state):
         """Check if entity's current state matches the scene's defined state."""
+        # Skip comparison if desired state is None (treat as "don't care")
+        desired_state = self.entities[entity_id]["state"]
+        if desired_state is None:
+            _LOGGER.debug(
+                "[%s] Desired state is None for %s, treating as 'don't care'",
+                self.name,
+                entity_id,
+            )
+            return None
+
+        # A scene captured while an entity was down stores "unavailable" as the
+        # desired state. Applying the scene can never reproduce that, so the
+        # scene would be permanently unmatched. Treat it as "don't care".
+        if desired_state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            _LOGGER.debug(
+                "[%s] Desired state is %s for %s, treating as 'don't care'",
+                self.name,
+                desired_state,
+                entity_id,
+            )
+            return None
+
         if new_state is None:
             # Check if entity exists in registry
             # Get entity registry directly
@@ -429,28 +451,6 @@ class Scene:
                 return None if self.ignore_unavailable else False
 
         if self.ignore_unavailable and new_state.state == STATE_UNAVAILABLE:
-            return None
-
-        # Skip comparison if desired state is None (treat as "don't care")
-        desired_state = self.entities[entity_id]["state"]
-        if desired_state is None:
-            _LOGGER.debug(
-                "[%s] Desired state is None for %s, treating as 'don't care'",
-                self.name,
-                entity_id,
-            )
-            return None
-
-        # A scene captured while an entity was down stores "unavailable" as the
-        # desired state. Applying the scene can never reproduce that, so the
-        # scene would be permanently unmatched. Treat it as "don't care".
-        if desired_state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-            _LOGGER.debug(
-                "[%s] Desired state is %s for %s, treating as 'don't care'",
-                self.name,
-                desired_state,
-                entity_id,
-            )
             return None
 
         # Check state

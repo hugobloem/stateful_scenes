@@ -162,6 +162,20 @@ class TestSceneStateChecking:
         result = await scene.async_check_state("light.test_light", None)
         assert result is False
 
+    @pytest.mark.parametrize("desired_state", ["unavailable", "unknown"])
+    async def test_check_state_removed_entity_with_unavailable_desired_state(
+        self, hass: HomeAssistant, desired_state: str
+    ):
+        """Test missing entities with unavailable desired states are ignored."""
+        conf = SCENE_CONF_MINIMAL.copy()
+        conf["entities"] = {"light.test_light": {"state": desired_state}}
+        scene = Scene(hass, conf)
+        scene.set_ignore_unavailable(False)
+
+        result = await scene.async_check_state("light.test_light", None)
+
+        assert result is None
+
     async def test_check_state_desired_unavailable_is_dont_care(
         self, hass: HomeAssistant
     ):
