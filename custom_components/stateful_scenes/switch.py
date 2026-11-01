@@ -205,7 +205,6 @@ class RestoreOnDeactivate(SwitchEntity, RestoreEntity):
         self._attr_unique_id = f"{scene.id}_restore_on_deactivate"
         self._scene.set_restore_on_deactivate(scene.restore_on_deactivate)
         self._is_on = scene.restore_on_deactivate
-        self._is_on = None
 
     @property
     def name(self) -> str:
@@ -300,12 +299,12 @@ class IgnoreUnavailable(SwitchEntity, RestoreEntity):
         brightness control.
         """
         self._scene.set_ignore_unavailable(True)
-        self._is_on = self._scene.restore_on_deactivate
+        self._is_on = self._scene.ignore_unavailable
 
     async def async_turn_off(self, **kwargs) -> None:
         """Instruct the light to turn off."""
         self._scene.set_ignore_unavailable(False)
-        self._is_on = self._scene.restore_on_deactivate
+        self._is_on = self._scene.ignore_unavailable
 
     async def async_update(self) -> None:
         """Fetch new state data for this light.
