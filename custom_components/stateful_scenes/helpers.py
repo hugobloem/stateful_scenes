@@ -80,7 +80,9 @@ def _extract_scene_id_from_unique_id(unique_id: str) -> str | None:
 
 def _get_device_entities(er: entity_registry.EntityRegistry, device_id: str) -> list:
     """Get all entities for a device."""
-    return [entity for entity in er.entities.values() if entity.device_id == device_id]
+    return entity_registry.async_entries_for_device(
+        er, device_id, include_disabled_entities=True
+    )
 
 
 async def async_cleanup_orphaned_entities(
@@ -94,21 +96,17 @@ async def async_cleanup_orphaned_entities(
     entities_to_remove = []
     orphaned_devices = set()
 
-    for entity_id, entity in er.entities.items():
-        if (
-            entity.platform == domain
-            and entity.config_entry_id == entry_id
-            and entity.unique_id
-        ):
+    for entity in entity_registry.async_entries_for_config_entry(er, entry_id):
+        if entity.platform == domain and entity.unique_id:
             scene_id = _extract_scene_id_from_unique_id(entity.unique_id)
 
             if scene_id and scene_id not in valid_scene_ids:
-                entities_to_remove.append(entity_id)
+                entities_to_remove.append(entity.entity_id)
                 if entity.device_id:
                     orphaned_devices.add(entity.device_id)
                 _LOGGER.info(
                     "Marking orphaned entity for removal: %s (scene_id: %s)",
-                    entity_id,
+                    entity.entity_id,
                     scene_id,
                 )
 
@@ -121,16 +119,14 @@ async def async_cleanup_orphaned_entities(
     devices_to_check = orphaned_devices.copy()
 
     # Add all devices belonging to this integration that have no entities
-    for device_id, device in dr.devices.items():
-        if entry_id in device.config_entries and not _get_device_entities(
-            er, device_id
-        ):
-            devices_to_check.add(device_id)
+    for device in device_registry.async_entries_for_config_entry(dr, entry_id):
+        if not _get_device_entities(er, device.id):
+            devices_to_check.add(device.id)
 
     # Remove devices with no entities
     for device_id in devices_to_check:
         if not _get_device_entities(er, device_id):
-            device = dr.devices.get(device_id)
+            device = dr.async_get(device_id)
             device_name = device.name if device else "Unknown"
             _LOGGER.info(
                 "Removing orphaned device: %s (name: %s)", device_id, device_name

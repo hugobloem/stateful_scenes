@@ -143,18 +143,20 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
     # Remove all entities associated with this config entry
     entities_to_remove = [
-        entity_id
-        for entity_id, entity in er.entities.items()
-        if entity.config_entry_id == entry.entry_id
+        entity.entity_id
+        for entity in entity_registry.async_entries_for_config_entry(
+            er, entry.entry_id
+        )
     ]
     for entity_id in entities_to_remove:
         er.async_remove(entity_id)
 
     # Remove all devices associated with this config entry
     devices_to_remove = [
-        device_id
-        for device_id, device in dr.devices.items()
-        if entry.entry_id in device.config_entries
+        device.id
+        for device in device_registry.async_entries_for_config_entry(
+            dr, entry.entry_id
+        )
     ]
     for device_id in devices_to_remove:
         dr.async_remove_device(device_id)
