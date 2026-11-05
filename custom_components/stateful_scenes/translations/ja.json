@@ -1,0 +1,85 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "description": "内部と外部のどちらのシーンを設定するかを選んでください。",
+                "menu_options": {
+                    "configure_internal_scenes": "Home Assistant のシーン（最初にこちら）",
+                    "select_external_scenes": "試験的：外部のシーン"
+                },
+                "title": "Stateful Scenes の設定"
+            },
+            "configure_internal_scenes": {
+                "description": "シーンのファイルのパスを指定してください（既定のパスは Home Assistant OS で使えます）",
+                "data": {
+                    "scene_path": "シーンのパス",
+                    "number_tolerance": "丸めの許容誤差",
+                    "restore_states_on_deactivate": "オフにしたときに状態を戻す",
+                    "transition_time": "トランジション時間",
+                    "debounce_time": "デバウンス時間",
+                    "ignore_unavailable": "利用不可の状態のエンティティを無視",
+                    "enable_discovery": "検出を有効にする"
+                }
+            },
+            "select_external_scenes": {
+                "description": "試験的な機能です！\n設定ファイルに無いシーンのうち、設定したいものを選んでください。これらのシーンは Stateful Scenes に学習させる必要があります。",
+                "data": {
+                    "external_scenes": "外部のシーン"
+                }
+            },
+            "configure_external_scene_entities": {
+                "description": "{scene_name} に属するエンティティを選んでください。\n注意：送信すると、シーンがオンになります！",
+                "data": {
+                    "scene_name": "シーン名",
+                    "scene_id": "シーン ID",
+                    "scene_entities": "シーンのエンティティ"
+                }
+            },
+            "learn_external_scene": {
+                "description": "シーンがオンになったかを確認してください。",
+                "data": {
+                    "external_scene_active": "オンになりましたか？"
+                }
+            },
+            "reconfigure_hub": {
+                "description": "Stateful Scenes の設定を変更します。",
+                "data": {
+                    "scene_path": "シーンのパス",
+                    "number_tolerance": "丸めの許容誤差",
+                    "restore_states_on_deactivate": "オフにしたときに状態を戻す",
+                    "transition_time": "トランジション時間",
+                    "debounce_time": "デバウンス時間",
+                    "ignore_unavailable": "利用不可の状態のエンティティを無視",
+                    "enable_discovery": "検出を有効にする"
+                }
+            },
+            "reconfigure_external": {
+                "description": "外部のシーンの設定とエンティティを変更します。",
+                "data": {
+                    "number_tolerance": "丸めの許容誤差",
+                    "restore_states_on_deactivate": "オフにしたときに状態を戻す",
+                    "transition_time": "トランジション時間",
+                    "debounce_time": "デバウンス時間",
+                    "ignore_unavailable": "利用不可の状態のエンティティを無視",
+                    "scene_entities": "シーンのエンティティ"
+                }
+            },
+            "reconfigure_external_learn": {
+                "description": "シーンがオンになりました。{entity_name} が望む状態になっているかを確認してください。",
+                "data": {
+                    "external_scene_active": "オンになりましたか？"
+                }
+            }
+        },
+        "error": {
+            "invalid_yaml": "シーンのファイルが正しくありません",
+            "yaml_not_found": "指定した YAML が見つかりません",
+            "unknown": "不明なエラーが発生しました",
+            "no_entity_id": "エンティティ ID が見つかりません",
+            "hub_not_found": "メインのエントリーが見つかりません。先に Stateful Scenes を設定してください"
+        },
+        "abort": {
+            "reconfigure_successful": "設定を更新しました"
+        }
+    }
+}
