@@ -24,7 +24,7 @@
             "select_external_scenes": {
                 "description": "EXPERIMENTAL!\nSelect the scenes not in the config file that you'd like to configure. These scenes will need to be learned by Stateful Scenes.",
                 "data": {
-                    "external_scenes": "External scenes"
+                    "entity_id": "External scenes"
                 }
             },
             "configure_external_scene_entities": {
@@ -32,7 +32,7 @@
                 "data": {
                     "scene_name": "Scene name",
                     "scene_id": "Scene ID",
-                    "scene_entities": "Scene entities"
+                    "entities": "Scene entities"
                 }
             },
             "learn_external_scene": {
@@ -61,7 +61,7 @@
                     "transition_time": "Transition time",
                     "debounce_time": "Debounce time",
                     "ignore_unavailable": "Ignore entities in unavailable state",
-                    "scene_entities": "Scene entities"
+                    "entities": "Scene entities"
                 }
             },
             "reconfigure_external_learn": {

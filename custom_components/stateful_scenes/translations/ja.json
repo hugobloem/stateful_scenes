@@ -24,7 +24,7 @@
             "select_external_scenes": {
                 "description": "試験的な機能です！\n設定ファイルに無いシーンのうち、設定したいものを選んでください。これらのシーンは Stateful Scenes に学習させる必要があります。",
                 "data": {
-                    "external_scenes": "外部のシーン"
+                    "entity_id": "外部のシーン"
                 }
             },
             "configure_external_scene_entities": {
@@ -32,7 +32,7 @@
                 "data": {
                     "scene_name": "シーン名",
                     "scene_id": "シーン ID",
-                    "scene_entities": "シーンのエンティティ"
+                    "entities": "シーンのエンティティ"
                 }
             },
             "learn_external_scene": {
@@ -61,7 +61,7 @@
                     "transition_time": "トランジション時間",
                     "debounce_time": "デバウンス時間",
                     "ignore_unavailable": "利用不可の状態のエンティティを無視",
-                    "scene_entities": "シーンのエンティティ"
+                    "entities": "シーンのエンティティ"
                 }
             },
             "reconfigure_external_learn": {
