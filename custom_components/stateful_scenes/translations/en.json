@@ -76,7 +76,8 @@
             "yaml_not_found": "Specified YAML not found",
             "unknown": "Unknown error occurred",
             "no_entity_id": "No entity ID found",
-            "hub_not_found": "Main entry not found, configure Stateful Scenes first"
+            "hub_not_found": "Main entry not found, configure Stateful Scenes first",
+            "no_configurable_scenes": "No scenes available to configure"
         },
         "abort": {
             "reconfigure_successful": "Configuration updated successfully"

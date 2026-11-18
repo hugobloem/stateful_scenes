@@ -76,7 +76,8 @@
             "yaml_not_found": "指定した YAML が見つかりません",
             "unknown": "不明なエラーが発生しました",
             "no_entity_id": "エンティティ ID が見つかりません",
-            "hub_not_found": "メインのエントリーが見つかりません。先に Stateful Scenes を設定してください"
+            "hub_not_found": "メインのエントリーが見つかりません。先に Stateful Scenes を設定してください",
+            "no_configurable_scenes": "設定できるシーンがありません"
         },
         "abort": {
             "reconfigure_successful": "設定を更新しました"
